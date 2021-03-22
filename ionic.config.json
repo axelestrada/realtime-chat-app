@@ -1,0 +1,7 @@
+{
+  "name": "RealtimeChat",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react"
+}
