@@ -1,0 +1,13 @@
+.error {
+  font-family: "Roboto-Black", sans-serif;
+  color: #FC0061;
+  -webkit-box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1);
+          box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1);
+  -webkit-transition-duration: 0.5s !important;
+          transition-duration: 0.5s !important;
+}
+
+.error.visible {
+  --tw-translate-y: 1rem;
+}
+/*# sourceMappingURL=Error.css.map */

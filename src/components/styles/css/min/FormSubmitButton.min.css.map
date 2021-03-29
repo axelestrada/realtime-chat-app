@@ -1,0 +1,9 @@
+{
+    "version": 3,
+    "mappings": "AAAA,AAAA,mBAAmB,AAAC,CAClB,UAAU,CAAE,2CAA2C,CACvD,UAAU,CAAE,MAAM,CAAC,MAAM,CAAC,MAAM,CAAC,iBAAoB,CAAG,QAAO,CAAE,QAAO,CAAC,MAAM,CAAC,iBAAoB,CAAG",
+    "sources": [
+        "../../sass/FormSubmitButton.sass"
+    ],
+    "names": [],
+    "file": "FormSubmitButton.min.css"
+}

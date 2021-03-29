@@ -1,0 +1,2 @@
+.form-mode-separator{font-family:"Roboto-Regular", sans-serif;color:#b8c2ce}.form-mode-separator::before,.form-mode-separator::after{content:'';position:absolute;top:50%;-webkit-transform:translateY(-50%);transform:translateY(-50%);left:-1rem;width:50%;height:0.125rem;background:#e8e9e9}.form-mode-separator::after{right:-1rem;left:inherit}
+/*# sourceMappingURL=FormModeSeparator.min.css.map */

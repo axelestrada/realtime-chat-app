@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "929797549197",
+    "project_id": "realimechat-308522",
+    "storage_bucket": "realimechat-308522.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:929797549197:android:5c4415e8200df453b186c4",
+        "android_client_info": {
+          "package_name": "com.realtimechat.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "929797549197-gpai8pm379o50vj1aci3855ko59ebi6t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.realtimechat.app",
+            "certificate_hash": "c8efc1e02398155f62e009493576add0037f56b2"
+          }
+        },
+        {
+          "client_id": "929797549197-5v5q0ls20jhtl0c8bok3s3a70hbluoip.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCneTNXx57ET-0HxDpOP8a21sAoMTQ_LpY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "929797549197-5v5q0ls20jhtl0c8bok3s3a70hbluoip.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

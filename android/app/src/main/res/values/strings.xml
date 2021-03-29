@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">RealtimeChat</string>
+    <string name="title_activity_main">RealtimeChat</string>
+    <string name="package_name">com.realtimechat.app</string>
+    <string name="custom_url_scheme">com.realtimechat.app</string>
+    <string name="facebook_app_id">1303880233318012</string>
+    <string name="fb_login_protocol_scheme">fb1303880233318012</string>
+    <string name="server_client_id">929797549197-5v5q0ls20jhtl0c8bok3s3a70hbluoip.apps.googleusercontent.com</string>
+</resources>

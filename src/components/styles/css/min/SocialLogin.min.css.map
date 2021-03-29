@@ -1,0 +1,9 @@
+{
+    "version": 3,
+    "mappings": "AAAA,AAAA,aAAa,AAAC,CACZ,WAAW,CAAE,4BAA4B,CACzC,KAAK,CAAE,OAAO,CAAG,AAEnB,AAAA,YAAY,AAAC,CACX,UAAU,CAAE,MAAM,CAAC,MAAM,CAAC,MAAM,CAAC,gBAAmB,CAAG,OAAM,CAAE,OAAM,CAAC,MAAM,CAAC,gBAAmB,CAGzE,AAJzB,AAGE,YAHU,AAGT,UAAW,CAAA,IAAM,CAAE,CAChB,MAAM,CAAE,MAAM,CAAG",
+    "sources": [
+        "../../sass/SocialLogin.sass"
+    ],
+    "names": [],
+    "file": "SocialLogin.min.css"
+}

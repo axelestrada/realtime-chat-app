@@ -1,0 +1,73 @@
+@import "./Fonts"
+
+.browser-link
+  margin-top: 1rem
+  text-align: left
+  color: #757F89
+  font-size: 1rem
+  font-family: "Roboto-Regular", sans-serif
+
+  input
+    display: none
+    &:checked
+      &+label label
+        border: 0.125rem solid #27B9EB
+        &::before
+          position: absolute
+          content: ""
+          top: 50%
+          left: 50%
+          transform: translate(-50%, -50%)
+          width: 0.4rem
+          height: 0.4rem
+          border-radius: 50%
+          background: #27B9EB
+
+    &+label label
+      position: relative
+      display: inline-block
+      margin: 0
+      background: #fff
+      border: 0.125rem solid #9da0a3
+      border-radius: 0.2rem
+      width: 0.9rem
+      height: 0.9rem
+      margin-right: 0.2rem
+
+  .link
+    text-decoration: none
+    color: #27B9EB
+    margin-left: 0.2rem
+
+.user-image
+  position: relative
+  width: 12rem
+  height: 12rem
+  border-radius: 50%
+  border: 0.35rem solid #fff
+  box-shadow: 0.3rem 0.3rem 1rem rgba(0, 0, 0, 0.1)
+
+  img
+    width: 100%
+    height: 100%
+    object-fit: cover
+    object-position: center
+    border-radius: 50%
+
+  .select-image-button
+    position: absolute
+    bottom: 0
+    right: 0
+    border: none
+    outline: none
+    padding: 0
+    width: 3rem
+    height: 3rem
+    border-radius: 50%
+    background: #fff
+    box-shadow: 0.3rem 0.3rem 1rem rgba(0, 0, 0, 0.1)
+
+    img
+      width: 75%
+      height: 75%
+      border-radius: 0

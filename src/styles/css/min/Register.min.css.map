@@ -1,0 +1,9 @@
+{
+    "version": 3,
+    "mappings": "AAAA,AAAA,IAAI,CAAC,cAAc,AAAC,CAClB,UAAU,CAAE,IAAI,CAAG",
+    "sources": [
+        "../../sass/Register.sass"
+    ],
+    "names": [],
+    "file": "Register.min.css"
+}
