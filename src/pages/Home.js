@@ -13,7 +13,9 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:3300", { autoConnect: false });
+const socket = io("https://realtime-chat-siwi.herokuapp.com/", {
+  autoConnect: false,
+});
 
 const Home = () => {
   const [users, setUsers] = useState([

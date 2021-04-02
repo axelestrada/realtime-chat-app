@@ -3,5 +3,5 @@ export default function MainContent({children}) {
     <div className="flex justify-center items-center min-h-full bg-gray-50">
       {children}
     </div>
-  )
+  );
 }

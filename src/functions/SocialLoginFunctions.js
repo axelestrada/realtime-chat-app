@@ -2,7 +2,9 @@ import { Plugins } from "@capacitor/core";
 import { Twitter } from "@capacitor-community/twitter";
 import "@codetrix-studio/capacitor-google-auth";
 
-import { Drivers, Storage } from "@ionic/storage"
+import axios from "axios";
+
+import { Drivers, Storage } from "@ionic/storage";
 
 const storage = new Storage({
   name: "__localDb",
@@ -12,7 +14,17 @@ const storage = new Storage({
 storage.create();
 
 /* ------ Facebook Login ------ */
-export async function signInFacebook(history) {
+export async function signInFacebook(history, setError, setShowLoader) {
+  setShowLoader(true)
+
+  let facebookUserData = {
+    socialAccount: "facebook",
+    socialAccountId: "",
+    name: "",
+    email: "",
+    picture: "",
+  };
+
   try {
     const FACEBOOK_PERMISSIONS = ["public_profile", "email"];
     const result = await Plugins.FacebookLogin.login({
@@ -20,17 +32,63 @@ export async function signInFacebook(history) {
     });
 
     if (result && result.accessToken) {
-      await storage.remove("twitterUserName");
-      await storage.remove("googleUserId");
+      facebookUserData.socialAccountId = result.accessToken.userId;
 
-      await storage.set("facebookToken", result.accessToken.token);
-      await storage.set("facebookUserId", result.accessToken.userId);
+      await fetch(
+        `https://graph.facebook.com/v10.0/${result.accessToken.userId}?fields=name,email&access_token=${result.accessToken.token}`
+      )
+        .then(async (res) => await res.json())
+        .then((response) => {
+          facebookUserData.name = response.name;
+          facebookUserData.email = response.email;
+        })
+        .catch((e) => {
+          console.error(e);
+          alert(e);
+        });
 
-      history.push("/home");
+      await fetch(
+        `https://graph.facebook.com/v10.0/${result.accessToken.userId}/picture?type=large&access_token=${result.accessToken.token}`
+      )
+        .then((res) => {
+          facebookUserData.picture = res.url;
+        })
+        .catch((e) => {
+          console.error(e);
+          alert(e);
+        });
+
+      axios
+        .post(
+          "https://realtime-chat-siwi.herokuapp.com/user/social-register",
+          facebookUserData
+        )
+        .then((res) => {
+          const { data } = res;
+          if (data.error) {
+            if (
+              data.error.path[0] === "email" &&
+              data.error.type === "string.empty"
+            ) {
+              setError("This account has no email address");
+            }
+          } else {
+            if (data) {
+              history.push("/home");
+            } else {
+              setError("An unexpected error has ocurred");
+            }
+          }
+        })
+        .catch((e) => {
+          console.log(e);
+        });
     }
   } catch (e) {
     console.error(e);
   }
+
+  setShowLoader(false);
 }
 
 /* ------ Twitter Login ------ */

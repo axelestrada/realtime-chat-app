@@ -1,0 +1,35 @@
+.loader-container
+  z-index: 1000
+
+  .gooey
+    filter: contrast(20)
+
+    .dot
+      left: 0.938rem
+      transform: translate(0, -50%)
+      background: #27B9EB
+      filter: blur(0.25rem)
+      animation: dot 2.8s infinite
+
+    .dots
+      margin-left: 31px
+      transform: translate(0, -50%)
+      animation: dots 2.8s infinite
+
+      span
+        display: block
+        float: left
+        width: 1.25rem
+        height: 1.25rem
+        margin-left: 1.25rem
+        background: #27B9EB
+        border-radius: 50%
+        filter: blur(4px)
+
+@keyframes dot
+  50%
+    transform: translate(118px, -50%)
+
+@keyframes dots
+  50%
+    transform: translate(-31px, -50%)
