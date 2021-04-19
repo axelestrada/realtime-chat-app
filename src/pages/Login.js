@@ -2,10 +2,8 @@ import { useState, useEffect } from "react";
 import { useHistory } from "react-router";
 
 import { Plugins, Capacitor } from "@capacitor/core";
-
 import { useForm } from "react-hook-form";
 
-import { io } from "socket.io-client";
 import axios from "axios";
 
 import { IonIcon, IonPage } from "@ionic/react";
@@ -49,10 +47,6 @@ const initialValues = {
   password: "",
 };
 
-const socket = io("https://realtime-chat-siwi.herokuapp.com/", {
-  autoConnect: false,
-});
-
 export default function Login() {
   const history = useHistory();
 
@@ -63,7 +57,7 @@ export default function Login() {
           Plugins.App.exitApp();
         } else if (window.location.pathname === "/register") {
           history.push("/login");
-        } else if (window.location.pathname === "/register/confirm-email") {
+        } else if (window.location.pathname === "/register/otp-verification") {
           history.push("/register");
         } else if (window.location.pathname === "/register/select-image") {
           history.push("/register/confirm-email");
@@ -76,22 +70,19 @@ export default function Login() {
   const [showLoader, setShowLoader] = useState(false);
   const [loginError, setLoginError] = useState("");
 
-  useEffect(() => {
-    socket.on("login", (user) => {
-      if (!user.error) {
-        console.log(user);
-        history.push("/home");
-      } else {
-        setLoginError(user.error);
-      }
-    });
-
-    socket.connect();
-  }, []); //eslint-disable-line
-
   const { register, handleSubmit, errors } = useForm({
     defaultValues: initialValues,
   });
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loginError !== "Insert a valid Email or Phone") {
+        setLoginError("");
+      }
+    }, 5000);
+
+    return () => clearTimeout(timeout);
+  }, [loginError]);
 
   const onSubmit = (data, e) => {
     setShowLoader(true);
@@ -125,10 +116,8 @@ export default function Login() {
   return (
     <IonPage>
       <MainContent>
-        <Loader visible={showLoader}/>
-        <Error
-          visible={errors.email || errors.password || loginError ? true : false}
-        >
+        <Loader visible={showLoader} />
+        <Error visible={errors.email || errors.password || loginError}>
           {errors.email && <span>{errors.email.message}</span>}
           {!errors.email && loginError && <span>{loginError}</span>}
           {!errors.email && !loginError && errors.password && (
@@ -137,10 +126,9 @@ export default function Login() {
         </Error>
         <FormContent>
           <FormHeader title="Login" subtitle="Sign in to your account" />
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(onSubmit)} autoComplete="off">
             <FormInput title="Email or Phone">
               <input
-                autoComplete="off"
                 type="text"
                 name="email"
                 ref={register({
@@ -149,13 +137,23 @@ export default function Login() {
                     message: "Email or Phone is required",
                   },
                   validate: (value) => {
+                    const trimValue = value
+                      .replace(/\s+/g, "")
+                      .replace(/[-]+/g, "");
+
                     if (
-                      !/^(\+\d{3})?([ ])?([3|8|9])\d{3}-?\d{4}$/.test(value) &&
+                      isNaN(trimValue) &&
                       !/^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(
                         value
                       )
                     ) {
                       setLoginError("Insert a valid Email or Phone");
+                    } else if (trimValue.length < 7) {
+                      setLoginError("Insert a valid Email or Phone");
+                    } else if (trimValue.split("")[0] === "+") {
+                      setLoginError(
+                        "Insert a phone number without country code"
+                      );
                     } else {
                       setLoginError("");
                     }
@@ -168,7 +166,6 @@ export default function Login() {
             <FormInput title="Password">
               <input
                 className="pr-4"
-                autoComplete="off"
                 type={showPassword ? "text" : "password"}
                 name="password"
                 ref={register({
@@ -208,17 +205,23 @@ export default function Login() {
             <SocialLink
               icon="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDU2LjY5MyA1Ni42OTMiIGhlaWdodD0iNTYuNjkzcHgiIGlkPSJMYXllcl8xIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCA1Ni42OTMgNTYuNjkzIiB3aWR0aD0iNTYuNjkzcHgiIHhtbDpzcGFjZT0icHJlc2VydmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPjxwYXRoIGQ9Ik00MC40MywyMS43MzloLTcuNjQ1di01LjAxNGMwLTEuODgzLDEuMjQ4LTIuMzIyLDIuMTI3LTIuMzIyYzAuODc3LDAsNS4zOTUsMCw1LjM5NSwwVjYuMTI1bC03LjQzLTAuMDI5ICBjLTguMjQ4LDAtMTAuMTI1LDYuMTc0LTEwLjEyNSwxMC4xMjV2NS41MThoLTQuNzd2OC41M2g0Ljc3YzAsMTAuOTQ3LDAsMjQuMTM3LDAsMjQuMTM3aDEwLjAzM2MwLDAsMC0xMy4zMiwwLTI0LjEzN2g2Ljc3ICBMNDAuNDMsMjEuNzM5eiIvPjwvc3ZnPg=="
               iconColor="#4267B2"
-              onClick={() => signInFacebook(history, setLoginError, setShowLoader)}
+              onClick={() =>
+                signInFacebook(history, setLoginError, setShowLoader)
+              }
             />
             <SocialLink
               icon={logoTwitter}
               iconColor="#22A2ED"
-              onClick={() => signInTwitter(history)}
+              onClick={() =>
+                signInTwitter(history, setLoginError, setShowLoader)
+              }
             />
             <SocialLink
               icon={logoGoogle}
               iconColor="#E54E64"
-              onClick={() => signInGoogle(history)}
+              onClick={() =>
+                signInGoogle(history, setLoginError, setShowLoader)
+              }
             />
           </SocialLogin>
         </FormContent>

@@ -1,35 +1,26 @@
 .loader-container
+  background: rgba(0,0,0,.5)
   z-index: 1000
 
-  .gooey
-    filter: contrast(20)
+  .lds-dual-ring
+    display: inline-block
+    width: 80px
+    height: 80px
 
-    .dot
-      left: 0.938rem
-      transform: translate(0, -50%)
-      background: #27B9EB
-      filter: blur(0.25rem)
-      animation: dot 2.8s infinite
+    &::after
+      content: ""
+      display: block
+      width: 64px
+      height: 64px
+      margin: 8px
+      border-radius: 50%
+      border: 6px solid #fff
+      border-color: #fff transparent #fff transparent
+      animation: lds-dual-ring 1.2s linear infinite
 
-    .dots
-      margin-left: 31px
-      transform: translate(0, -50%)
-      animation: dots 2.8s infinite
+@keyframes lds-dual-ring
+  0%
+    transform: rotate(0deg)
 
-      span
-        display: block
-        float: left
-        width: 1.25rem
-        height: 1.25rem
-        margin-left: 1.25rem
-        background: #27B9EB
-        border-radius: 50%
-        filter: blur(4px)
-
-@keyframes dot
-  50%
-    transform: translate(118px, -50%)
-
-@keyframes dots
-  50%
-    transform: translate(-31px, -50%)
+  100%
+    transform: rotate(360deg)

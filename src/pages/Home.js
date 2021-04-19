@@ -57,23 +57,6 @@ const Home = () => {
   });
   storage.create();
 
-  async function getFLS() {
-    const token = await storage.get("facebookToken");
-    const userId = await storage.get("facebookUserId");
-
-    const response = await fetch(
-      `https://graph.facebook.com/${userId}?fields=id,name,gender,link,picture&type=large&access_token=${token}`
-    );
-    const myJson = await response.json();
-
-    if (!myJson.error) {
-      setUserInfo({
-        picture: myJson.picture.data.url,
-        name: myJson.name,
-      });
-    }
-  }
-
   useEffect(() => {
     if (location.pathname === "/home") {
       console.log(location.state);
@@ -100,7 +83,7 @@ const Home = () => {
             console.log(users);
             return user.name;
           })}
-        </IonCard>
+        </IonCard>        
       </IonContent>
     </IonPage>
   );

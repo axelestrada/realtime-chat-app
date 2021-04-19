@@ -1,6 +1,6 @@
 export default function MainContent({children}) {
   return (
-    <div className="flex justify-center items-center min-h-full bg-gray-50">
+    <div className="min-h-full overflow-y-auto bg-gray-50">
       {children}
     </div>
   );

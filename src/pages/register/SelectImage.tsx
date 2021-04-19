@@ -5,8 +5,6 @@ import { useHistory, useLocation } from "react-router";
 /* ------ Ionic Components ------ */
 import { IonContent, IonPage } from "@ionic/react";
 
-/* ------ Styles ------ */
-import "../../styles/css/min/Login.min.css";
 
 /* ------ Open In Browser ------ */
 import { Plugins } from "@capacitor/core";
