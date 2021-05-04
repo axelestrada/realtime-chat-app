@@ -7,13 +7,13 @@
   outline: none;
   color: #4B5560;
   text-align: center;
-  width: 20%;
+  width: 15%;
   background: none;
 }
 
 .otp-input div span {
   display: inline-block;
-  width: 20%;
+  width: 15%;
   height: 0.125rem;
   background: #60CCEE;
 }

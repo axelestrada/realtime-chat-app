@@ -3,6 +3,20 @@
   color: #FC0061
   box-shadow: 0 0 1rem rgba(0, 0, 0, .1)
   transition-duration: 0.5s !important
+  transform: translate(-50%, -5rem)
+  z-index: 1200
 
   &.visible
-    --tw-translate-y: 1rem
+    transform: translate(-50%, 1rem)
+
+  &.vibrate
+    animation: vibrate 0.35s
+
+@keyframes vibrate
+  0%,
+  50%,
+  100%
+    transform: translate(-50%, 1rem)
+  25%,
+  75%
+    transform: translate(-50%, 1.2rem)

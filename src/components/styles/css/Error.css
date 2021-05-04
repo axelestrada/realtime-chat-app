@@ -5,9 +5,46 @@
           box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1);
   -webkit-transition-duration: 0.5s !important;
           transition-duration: 0.5s !important;
+  -webkit-transform: translate(-50%, -5rem);
+          transform: translate(-50%, -5rem);
+  z-index: 1200;
 }
 
 .error.visible {
-  --tw-translate-y: 1rem;
+  -webkit-transform: translate(-50%, 1rem);
+          transform: translate(-50%, 1rem);
+}
+
+.error.vibrate {
+  -webkit-animation: vibrate 0.35s;
+          animation: vibrate 0.35s;
+}
+
+@-webkit-keyframes vibrate {
+  0%,
+  50%,
+  100% {
+    -webkit-transform: translate(-50%, 1rem);
+            transform: translate(-50%, 1rem);
+  }
+  25%,
+  75% {
+    -webkit-transform: translate(-50%, 1.2rem);
+            transform: translate(-50%, 1.2rem);
+  }
+}
+
+@keyframes vibrate {
+  0%,
+  50%,
+  100% {
+    -webkit-transform: translate(-50%, 1rem);
+            transform: translate(-50%, 1rem);
+  }
+  25%,
+  75% {
+    -webkit-transform: translate(-50%, 1.2rem);
+            transform: translate(-50%, 1.2rem);
+  }
 }
 /*# sourceMappingURL=Error.css.map */

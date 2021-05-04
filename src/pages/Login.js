@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useHistory } from "react-router";
 
-import { Plugins, Capacitor } from "@capacitor/core";
+import { Plugins } from "@capacitor/core";
+
 import { useForm } from "react-hook-form";
 
 import axios from "axios";
@@ -21,6 +22,8 @@ import {
   logoGoogle,
 } from "ionicons/icons";
 
+import ChatBitLogo from "../assets/images/chatbitLogoIcon.jpg";
+
 import FormHeader from "../components/FormHeader";
 import Error from "../components/Error";
 import FormInput from "../components/FormInput";
@@ -34,6 +37,8 @@ import SocialLink from "../components/SocialLink";
 import { Drivers, Storage } from "@ionic/storage";
 import FormContent from "../components/FormContent";
 import Loader from "../components/Loader";
+
+const { Network } = Plugins;
 
 const storage = new Storage({
   name: "__localDb",
@@ -50,25 +55,15 @@ const initialValues = {
 export default function Login() {
   const history = useHistory();
 
-  useEffect(() => {
-    if (Capacitor.isNative) {
-      Plugins.App.addListener("backButton", () => {
-        if (window.location.pathname === "/login") {
-          Plugins.App.exitApp();
-        } else if (window.location.pathname === "/register") {
-          history.push("/login");
-        } else if (window.location.pathname === "/register/otp-verification") {
-          history.push("/register");
-        } else if (window.location.pathname === "/register/select-image") {
-          history.push("/register/confirm-email");
-        }
-      });
-    }
-  }, []); // eslint-disable-line
-
   const [showPassword, setShowPassword] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
+  const [internetConnection, setInternetConnection] = useState(true);
+  const [vibrateError, setVibrateError] = useState(false);
   const [loginError, setLoginError] = useState("");
+
+  Network.addListener("networkStatusChange", (status) => {
+    setInternetConnection(status.connected);
+  });
 
   const { register, handleSubmit, errors } = useForm({
     defaultValues: initialValues,
@@ -84,45 +79,75 @@ export default function Login() {
     return () => clearTimeout(timeout);
   }, [loginError]);
 
-  const onSubmit = (data, e) => {
-    setShowLoader(true);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setVibrateError(false);
+    }, 350);
 
-    axios
-      .get("https://realtime-chat-siwi.herokuapp.com/user/login", {
-        params: {
-          email: data.email,
-          password: data.password,
-        },
-      })
-      .then(async (res) => {
-        if (res.data.error) {
-          setLoginError(res.data.error);
-        } else {
-          history.push("/home", res.data);
-          await storage.set("userId", res.data._id);
+    return () => clearTimeout(timeout);
+  }, [vibrateError]);
+
+  const onSubmit = async (data, e) => {
+    const connection = await Network.getStatus();
+    setInternetConnection(connection.connected);
+
+    if (connection.connected) {
+      const { email, password } = data;
+
+      setShowLoader(true);
+
+      await axios
+        .post("http://192.168.0.106:3300/user/login", {
+          email,
+          password,
+        })
+        .then(async (res) => {
+          history.push("/home");
+
+          await storage.set("token", res.data.token);
+          await storage.set("userId", res.data.userId);
           e.target.reset();
-        }
+        })
+        .catch((error) => {
+          if (error.response) {
+            if (error.response.data.error) {
+              return setLoginError(error.response.data.error);
+            }
+          }
 
-        setShowLoader(false);
-      })
-      .catch((e) => {
-        console.error(e);
-        setLoginError(e);
+          setLoginError("An unexpected error has ocurred");
+          console.error(error);
+        });
 
-        setShowLoader(false);
-      });
+      setShowLoader(false);
+    } else {
+      setVibrateError(true);
+    }
   };
 
   return (
     <IonPage>
       <MainContent>
-        <Loader visible={showLoader} />
-        <Error visible={errors.email || errors.password || loginError}>
-          {errors.email && <span>{errors.email.message}</span>}
-          {!errors.email && loginError && <span>{loginError}</span>}
-          {!errors.email && !loginError && errors.password && (
-            <span>{errors.password.message}</span>
+        <Loader visible={showLoader} src={ChatBitLogo} />
+        <Error
+          visible={
+            !internetConnection || errors.email || errors.password || loginError
+          }
+          vibrate={vibrateError}
+        >
+          {!internetConnection && (
+            <span>Please check your internet connection</span>
           )}
+          {internetConnection && errors.email && (
+            <span>{errors.email.message}</span>
+          )}
+          {internetConnection && !errors.email && loginError && (
+            <span>{loginError}</span>
+          )}
+          {internetConnection &&
+            !errors.email &&
+            !loginError &&
+            errors.password && <span>{errors.password.message}</span>}
         </Error>
         <FormContent>
           <FormHeader title="Login" subtitle="Sign in to your account" />
@@ -150,15 +175,10 @@ export default function Login() {
                       setLoginError("Insert a valid Email or Phone");
                     } else if (trimValue.length < 7) {
                       setLoginError("Insert a valid Email or Phone");
-                    } else if (trimValue.split("")[0] === "+") {
-                      setLoginError(
-                        "Insert a phone number without country code"
-                      );
                     } else {
                       setLoginError("");
+                      return true;
                     }
-
-                    return true;
                   },
                 })}
               />
@@ -205,23 +225,44 @@ export default function Login() {
             <SocialLink
               icon="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDU2LjY5MyA1Ni42OTMiIGhlaWdodD0iNTYuNjkzcHgiIGlkPSJMYXllcl8xIiB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCA1Ni42OTMgNTYuNjkzIiB3aWR0aD0iNTYuNjkzcHgiIHhtbDpzcGFjZT0icHJlc2VydmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiPjxwYXRoIGQ9Ik00MC40MywyMS43MzloLTcuNjQ1di01LjAxNGMwLTEuODgzLDEuMjQ4LTIuMzIyLDIuMTI3LTIuMzIyYzAuODc3LDAsNS4zOTUsMCw1LjM5NSwwVjYuMTI1bC03LjQzLTAuMDI5ICBjLTguMjQ4LDAtMTAuMTI1LDYuMTc0LTEwLjEyNSwxMC4xMjV2NS41MThoLTQuNzd2OC41M2g0Ljc3YzAsMTAuOTQ3LDAsMjQuMTM3LDAsMjQuMTM3aDEwLjAzM2MwLDAsMC0xMy4zMiwwLTI0LjEzN2g2Ljc3ICBMNDAuNDMsMjEuNzM5eiIvPjwvc3ZnPg=="
               iconColor="#4267B2"
-              onClick={() =>
-                signInFacebook(history, setLoginError, setShowLoader)
-              }
+              onClick={async () => {
+                const connection = await Network.getStatus();
+                setInternetConnection(connection.connected);
+
+                if (connection.connected) {
+                  signInFacebook(history, setLoginError, setShowLoader);
+                } else {
+                  setVibrateError(true);
+                }
+              }}
             />
             <SocialLink
               icon={logoTwitter}
               iconColor="#22A2ED"
-              onClick={() =>
-                signInTwitter(history, setLoginError, setShowLoader)
-              }
+              onClick={async () => {
+                const connection = await Network.getStatus();
+                setInternetConnection(connection.connected);
+
+                if (connection.connected) {
+                  signInTwitter(history, setLoginError, setShowLoader);
+                } else {
+                  setVibrateError(true);
+                }
+              }}
             />
             <SocialLink
               icon={logoGoogle}
               iconColor="#E54E64"
-              onClick={() =>
-                signInGoogle(history, setLoginError, setShowLoader)
-              }
+              onClick={async () => {
+                const connection = await Network.getStatus();
+                setInternetConnection(connection.connected);
+
+                if (connection.connected) {
+                  signInGoogle(history, setLoginError, setShowLoader);
+                } else {
+                  setVibrateError(true);
+                }
+              }}
             />
           </SocialLogin>
         </FormContent>

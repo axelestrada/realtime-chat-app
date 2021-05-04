@@ -1,33 +1,29 @@
 import axios from "axios";
 
-export default async function CheckEmail(
-  data,
-  history,
-  setShowLoader,
-  setError
-) {
+export default async function CheckEmail(data, setShowLoader, setError) {
   setShowLoader(true);
 
+  const { name, email, code } = data;
+  let result = false;
+
   await axios
-    .get("http://192.168.0.106:3300/user/check-email", {
-      params: {
-        name: data.name,
-        email: data.email,
-      },
+    .post("http://192.168.0.106:3300/user/check-email", {
+      name,
+      email,
+      code,
     })
-    .then((res) => {
-      const {error} = res.data;
-      if(error){
-        setError(error)
-      }else{
-        console.log(res)
-        history.push("/register/otp-verification", data);
-      }
+    .then(() => {
+      result = true;
     })
-    .catch((e) => {
-      console.error(e);
-      setError("An unexpected error has ocurred");
+    .catch((error) => {
+       if (error.response && error.response.data.error) {
+         return setError(error.response.data.error);
+       }
+
+       setError("An unexpected error has ocurred");
+       console.error(error);
     });
 
   setShowLoader(false);
+  return result;
 }

@@ -1,12 +1,15 @@
-import { Redirect, Route } from "react-router-dom";
+import { Route } from "react-router-dom";
 import { IonApp, IonRouterOutlet, setupConfig } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
-import Home from "./pages/Home.js";
+import Start from "./pages/Start.js";
 import Login from "./pages/Login.js";
 import Register from "./pages/Register.js";
-import SelectImage from "./pages/register/SelectImage";
 import OtpVerification from "./pages/OtpVerification.js";
+import SelectImage from "./pages/SelectImage.js";
+import AddPhone from './pages/AddPhone.js';
+import Home from "./pages/Home.js";
+import Chat from "./pages/Chat.js";
 
 /* Core CSS required for Ionic components to work properly */
 import "@ionic/react/css/core.css";
@@ -28,6 +31,9 @@ import "@ionic/react/css/display.css";
 import "./theme/variables.css";
 import "./styles/tailwind.min.css";
 import "./styles/css/min/Main.min.css";
+import Contacts from "./pages/Contacts.js";
+import StartChat from "./pages/StartChat.js";
+
 
 setupConfig({
   hardwareBackButton: false,
@@ -39,6 +45,15 @@ const App: React.FC = () => (
       <IonRouterOutlet>
         <Route exact path="/home">
           <Home />
+        </Route>
+        <Route exact path="/home/chat">
+          <Chat />
+        </Route>
+        <Route exact path="/home/start-chat">
+          <StartChat />
+        </Route>
+        <Route exact path="/home/contacts">
+          <Contacts />
         </Route>
         <Route exact path="/login">
           <Login />
@@ -52,8 +67,11 @@ const App: React.FC = () => (
         <Route exact path="/register/otp-verification">
           <OtpVerification />
         </Route>
+        <Route exact path="/register/add-phone">
+          <AddPhone />
+        </Route>
         <Route exact path="/">
-          <Redirect to="/login" />
+          <Start />
         </Route>
       </IonRouterOutlet>
     </IonReactRouter>

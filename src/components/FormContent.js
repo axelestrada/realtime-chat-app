@@ -1,3 +1,9 @@
-export default function FormContent({ children }) {
-  return <div className="w-full min-h-full flex justify-center flex-col max-w-sm py-6 px-11">{children}</div>;
+export default function FormContent({ children, justifyContent = "justify-center", alignItems = "" }) {
+  return (
+    <div
+      className={`w-full min-h-full flex flex-col max-w-sm py-6 px-9 m-auto ${justifyContent} ${alignItems}`}
+    >
+      {children}
+    </div>
+  );
 }
