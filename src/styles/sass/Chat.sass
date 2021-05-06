@@ -16,6 +16,20 @@
   &__messages
     border-radius: 2rem 2rem 0 0
 
+    .group-date
+      position: -webkit-sticky
+      position: sticky
+      top: -1.3rem
+      z-index: 100
+      margin: 0 auto 1.3rem auto
+      width: 8rem
+      text-align: center
+      background: #F3F4F6
+      font-family: "Roboto-Medium", sans-serif
+      color: #939BB4
+      padding: 0 0.8rem
+      border-radius: 0.8rem
+
     .message
       padding-bottom: 1.3rem
       max-width: 80%
@@ -54,7 +68,7 @@
 
     .input-box
       display: grid
-      grid-template-columns: min-content 1fr min-content
+      grid-template-columns: 1fr min-content
       background: #F6F8FD
       color: #939BB4
 
@@ -81,4 +95,3 @@
       .emoji-picker-react
         opacity: 1
         pointer-events: all
-

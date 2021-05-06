@@ -1,22 +1,18 @@
 import { IonIcon, IonPage } from "@ionic/react";
 import axios from "axios";
-import {
-  chevronBack,
-  happyOutline,
-  informationCircleOutline,
-} from "ionicons/icons";
+import { chevronBack, informationCircleOutline } from "ionicons/icons";
 import { useHistory, useLocation } from "react-router";
 
 import "../styles/css/min/Chat.min.css";
 
 import { Drivers, Storage } from "@ionic/storage";
 import { useEffect, useRef, useState } from "react";
-import Picker from "emoji-picker-react";
 import { io } from "socket.io-client";
+import Loader from "../components/Loader";
+import Logo from "../assets/images/chatbitLogoIcon.jpg";
+import moment from "moment";
+const socket = io("http://192.168.0.106:3300");
 
-const socket = io("http://192.168.0.106:3300", {
-  autoConnect: false,
-});
 const storage = new Storage({
   name: "__localDb",
   driverOrder: [Drivers.IndexedDB, Drivers.LocalStorage],
@@ -29,18 +25,76 @@ function Chat() {
   const location = useLocation();
 
   const [message, setMessage] = useState("");
-  const [showPicker, setShowPicker] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [showLoader, setShowLoader] = useState(false);
+  let currentDate = "";
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
   const messagesEndRef = useRef(null);
 
-  const onEmojiClick = (event, emojiObject) => {
-    setMessage(msg => msg + emojiObject.emoji)
-  }
+  const audio = new Audio("http://192.168.0.106:3300/sounds/new-message.ogg");
+
+  const addContact = async (id) => {
+    const token = await storage.get("token");
+
+    axios
+      .put(
+        "http://192.168.0.106:3300/home/add-contact",
+        {
+          userId: id,
+        },
+        {
+          headers: {
+            token,
+          },
+        }
+      )
+      .then(() => {})
+      .catch((err) => {
+        console.error(err);
+      });
+  };
+
+  const readMessages = async (msgId = "") => {
+    const token = await storage.get("token");
+
+    await axios
+      .put(
+        "http://192.168.0.106:3300/home/read-messages",
+        {
+          userId: location.state && location.state.userId,
+          msgId,
+        },
+        {
+          headers: {
+            token,
+          },
+        }
+      )
+      .then(() => {
+        getMessages();
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  };
 
   const getMessages = async () => {
     const token = await storage.get("token");
 
-    axios
+    await axios
       .get("http://192.168.0.106:3300/home/get-messages", {
         headers: {
           token,
@@ -63,6 +117,8 @@ function Chat() {
       .catch((e) => {
         console.error(e);
       });
+
+    setShowLoader(false);
   };
 
   const formatAMPM = (date) => {
@@ -99,41 +155,47 @@ function Chat() {
     }
   };
 
-  useEffect(() => {
-    socket.on("message", async (msg) => {
-      const userId = await storage.get("userId");
-      if (
-        msg.incomingMsgId === userId &&
-        msg.outgoingMsgId === location.state.userId
-      ) {
-        setMessages((msgs) => [...msgs, msg]);
+  const handleMessage = async (msg) => {
+    const userId = await storage.get("userId");
 
-        if (messagesEndRef.current && messagesEndRef.current.scrollIntoView) {
-          messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-        }
+    if (
+      msg.incomingMsgId === userId &&
+      msg.outgoingMsgId === location.state.userId
+    ) {
+      audio.play();
+
+      setMessages((msgs) => [...msgs, msg]);
+
+      if (messagesEndRef.current && messagesEndRef.current.scrollIntoView) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
       }
-    });
 
-    socket.connect();
-
-    return () => socket.disconnect();
-  }, []); //eslint-disable-line
+      readMessages(msg._id);
+    }
+  };
 
   useEffect(() => {
-    let isMounted = true;
-
     if (location.pathname === "/home/chat") {
-      if (isMounted) getMessages();
+      setShowLoader(true);
+
+      readMessages();
+
+      if (location.state && location.state.userId) {
+        addContact(location.state.userId);
+      }
+
+      socket.on("message", handleMessage);
     }
 
     return () => {
-      isMounted = false;
+      socket.off("message", handleMessage);
     };
   }, [location]); //eslint-disable-line
 
   return (
     <IonPage>
       <div className="w-full h-full bg-gray-100">
+        <Loader visible={showLoader} src={Logo} />
         <div className="chat-page w-full h-full max-w-sm m-auto bg-gray-100">
           <div className="chat-page__header p-5 flex justify-between items-center">
             <IonIcon
@@ -150,14 +212,49 @@ function Chat() {
             <IonIcon className="icon" src={informationCircleOutline} />
           </div>
 
-          <div className="chat-page__messages bg-white p-5 pb-0 max-h-full overflow-y-auto">
+          <div className="chat-page__messages bg-white p-5 pb-0 max-h-full overflow-y-scroll">
             {messages.map((message, idx) => {
               let date = new Date(message.date);
+              let myDate = new Date();
+              let groupDate = moment().diff(date, "minutes");
+
+              groupDate =
+                groupDate <= 1440 && date.getDay() === myDate.getDay()
+                  ? "Today"
+                  : groupDate <= 2880 && date.getDay() === myDate.getDay() - 1
+                  ? "Yesterday"
+                  : months[date.getMonth()] +
+                    " " +
+                    date.getDate() +
+                    ", " +
+                    date.getFullYear();
+
+              if (groupDate !== currentDate) {
+                currentDate = groupDate;
+
+                return (
+                  <>
+                    <div className="group-date" key={groupDate}>{groupDate}</div>
+                    <Message
+                      key={idx}
+                      type={
+                        location.state &&
+                        location.state.userId === message.incomingMsgId
+                          ? "outgoing"
+                          : "incoming"
+                      }
+                      content={message.msg}
+                      date={formatAMPM(date)}
+                    />
+                  </>
+                );
+              }
 
               return (
                 <Message
                   key={idx}
                   type={
+                    location.state &&
                     location.state.userId === message.incomingMsgId
                       ? "outgoing"
                       : "incoming"
@@ -170,34 +267,19 @@ function Chat() {
             <div ref={messagesEndRef} />
           </div>
 
-          <div
-            className={`chat-page__message-box bg-white p-5 ${
-              showPicker && "show-picker"
-            }`}
-          >
-            <Picker
-              disableSearchBar={true}
-              disableSkinTonePicker={true}
-              onEmojiClick={onEmojiClick}
-            />
+          <div className="chat-page__message-box bg-white p-5">
             <form
               onSubmit={sendMessage}
               className="input-box px-2 py-4 rounded-2xl"
             >
-              <IonIcon
-                className="icon"
-                src={happyOutline}
-                onClick={() => setShowPicker(!showPicker)}
-              />
               <input
                 type="text"
                 autoComplete="off"
                 placeholder="Message..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                onClick={() => setShowPicker(false)}
               />
-              <button type="submit" onClick={() => setShowPicker(false)}>
+              <button type="submit">
                 <svg
                   className="icon"
                   xmlns="http://www.w3.org/2000/svg"

@@ -18,29 +18,6 @@ const storage = new Storage({
 
 storage.create();
 
-const addContact = async (id) => {
-  const token = await storage.get("token");
-
-  axios
-    .put(
-      "http://192.168.0.106:3300/home/add-contact",
-      {
-        userId: id,
-      },
-      {
-        headers: {
-          token,
-        },
-      }
-    )
-    .then((res) => {
-      console.log(res);
-    })
-    .catch((err) => {
-      console.error(err);
-    });
-};
-
 function Contacts() {
   const [contacts, setContacts] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -143,7 +120,11 @@ function Contact({ profilePicture, userName, phoneNumber, userId }) {
   const history = useHistory();
 
   return (
-    <div className="contact pb-3">
+    <div
+      className="contact mb-3"
+      onClick={() => {
+        history.push("/home/chat", { userId, userName })}}
+    >
       <div className="img-box">
         <img
           className="rounded-full object-cover"
@@ -161,14 +142,7 @@ function Contact({ profilePicture, userName, phoneNumber, userId }) {
       </div>
       <div className="text-right">
         <button>
-          <IonIcon
-            className="icon"
-            src={chatboxOutline}
-            onClick={() => {
-              history.push("/home/chat", { userId, userName });
-              addContact(userId);
-            }}
-          />
+          <IonIcon className="icon" src={chatboxOutline} />
         </button>
       </div>
     </div>

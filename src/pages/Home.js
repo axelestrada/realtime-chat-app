@@ -1,19 +1,22 @@
 import { IonPage, IonIcon } from "@ionic/react";
 import { Drivers, Storage } from "@ionic/storage";
-import {
-  search,
-} from "ionicons/icons";
-import { useEffect } from "react";
+import { search } from "ionicons/icons";
+import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
 
 import defaultUser from "../assets/images/defaultUser.jpg";
 import "../styles/css/min/Home.min.css";
 import HomeFooter from "../components/HomeFooter";
+import { useHistory, useLocation } from "react-router";
 
-const socket = io("http://192.168.0.106:3300", {
-  autoConnect: false,
-});
+import moment from "moment";
+
+import config from "../config.json";
+import Loader from "../components/Loader";
+import Logo from "../assets/images/chatbitLogoIcon.jpg";
+
+const socket = io(config.SERVER_URL);
 
 const storage = new Storage({
   name: "__localDb",
@@ -23,30 +26,68 @@ const storage = new Storage({
 storage.create();
 
 const Home = () => {
-  const latestMessages = async () => {
+  const location = useLocation();
+  const [showLoader, setShowLoader] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [activeChats, setActiveChats] = useState([]);
+
+  useEffect(() => {
+    if (searchValue) {
+      setSearchResults(
+        activeChats.filter(
+          (chat) =>
+            chat.contactInfo.name
+              .toLowerCase()
+              .indexOf(searchValue.toLowerCase()) > -1
+        )
+      );
+    } else {
+      setSearchResults([]);
+    }
+  }, [searchValue]); //eslint-disable-line
+
+  const latestMessages = async (loader) => {
+    if (loader === "si") {
+      setShowLoader(true);
+    }
+
     const token = await storage.get("token");
 
-    axios
-      .get("http://192.168.0.106:3300/home/latest-messages", {
+    await axios
+      .get(`${config.SERVER_URL}/home/latest-messages`, {
         headers: {
           token,
         },
       })
-      .then(() => {})
+      .then((res) => {
+        if (res.data.latestMessages) {
+          setActiveChats(res.data.latestMessages);
+        }
+      })
       .catch((err) => {
         console.error(err);
       });
+
+    setShowLoader(false);
   };
 
   useEffect(() => {
-    latestMessages();
+    if (location.pathname === "/home") {
+      latestMessages("si");
 
-    socket.connect();
-  }, []);
+      socket.on("message", latestMessages);
+    }
+
+    return () => {
+      socket.off("message", latestMessages);
+    };
+  }, [location]); //eslint-disable-line
 
   return (
     <IonPage>
       <div className="w-full h-full bg-gray-100">
+        <Loader visible={showLoader} src={Logo} />
         <div className="home w-full h-full max-w-sm m-auto bg-gray-100">
           <div className="home__header bg-white rounded-b-3xl p-5">
             <div className="flex justify-between items-center">
@@ -66,38 +107,86 @@ const Home = () => {
 
             <div className="home__search-box rounded-full mt-3 py-3 px-5">
               <IonIcon src={search} className="w-5 h-5 grid" />
-              <input type="text" name="search" placeholder="Search by name" />
+              <input
+                autoComplete="off"
+                type="text"
+                name="search"
+                placeholder="Search by name"
+                value={searchValue}
+                onChange={(e) => setSearchValue(e.target.value)}
+              />
             </div>
           </div>
 
           <div className="home__chats p-5 max-h-full overflow-y-auto">
-            <Chat
-              userName="Pamela Willis"
-              latestMessage="Lorem, ipsum dolor sit amet consectetur adipisicing elit. Minima et voluptatum pariatur accusamus repellat sint!"
-              latestMessageDate="5 min"
-              profilePicture="https://wipy.tv/wp-content/uploads/2020/09/nueva-imagen-de-black-widow.jpg"
-            />
-            <Chat
-              userName="Nick Stewart"
-              latestMessage="Lorem ipsum dolor sit amet consectetur adipisicing elit."
-              latestMessageDate="12 min"
-              unreadMessages="2"
-              profilePicture="https://deathofhemingway.com/wp-content/uploads/2020/12/istockphoto-1045886560-612x612-1.jpg"
-            />
-            <Chat
-              userName="Jasmine Grand"
-              latestMessage="Lorem ipsum dolor sit."
-              latestMessageDate="25 min"
-              unreadMessages="1"
-              profilePicture="https://i.pinimg.com/originals/97/ed/6b/97ed6b370803649addbf66144c18c194.png"
-            />
-            <Chat
-              userName="Barbara Matthews"
-              latestMessage="Lorem ipsum dolor sit amet consectetur adipisicing elit. Dolore!"
-              latestMessageDate="3 hours"
-            />
-          </div>
+            {searchValue !== ""
+              ? searchResults.map((chat, idx) => {
+                  let latestDate = moment(
+                    chat.latestMessage && chat.latestMessage.date
+                  ).fromNow(true);
+                  latestDate = latestDate.split(" ");
+                  latestDate[0] =
+                    latestDate[0] === "a" || latestDate[0] === "an"
+                      ? "1"
+                      : latestDate[0];
+                  latestDate[1] =
+                    latestDate[1] === "few"
+                      ? "mom"
+                      : latestDate[1] === "seconds"
+                      ? "sec"
+                      : latestDate[1] === "minute" ||
+                        latestDate[1] === "minutes"
+                      ? "min"
+                      : latestDate[1];
 
+                  return (
+                    <Chat
+                      key={idx}
+                      userId={chat.contactInfo._id}
+                      userName={chat.contactInfo.name}
+                      latestMessage={
+                        chat.latestMessage && chat.latestMessage.msg
+                      }
+                      latestMessageDate={latestDate[0] + " " + latestDate[1]}
+                      profilePicture={chat.contactInfo.picture}
+                      unreadMessages={chat.unreadMessages}
+                    />
+                  );
+                })
+              : activeChats.map((chat, idx) => {
+                  let latestDate = moment(
+                    chat.latestMessage && chat.latestMessage.date
+                  ).fromNow(true);
+                  latestDate = latestDate.split(" ");
+                  latestDate[0] =
+                    latestDate[0] === "a" || latestDate[0] === "an"
+                      ? "1"
+                      : latestDate[0];
+                  latestDate[1] =
+                    latestDate[1] === "few"
+                      ? "mom"
+                      : latestDate[1] === "seconds"
+                      ? "sec"
+                      : latestDate[1] === "minute" ||
+                        latestDate[1] === "minutes"
+                      ? "min"
+                      : latestDate[1];
+
+                  return (
+                    <Chat
+                      key={idx}
+                      userId={chat.contactInfo._id}
+                      userName={chat.contactInfo.name}
+                      latestMessage={
+                        chat.latestMessage && chat.latestMessage.msg
+                      }
+                      latestMessageDate={latestDate[0] + " " + latestDate[1]}
+                      profilePicture={chat.contactInfo.picture}
+                      unreadMessages={chat.unreadMessages}
+                    />
+                  );
+                })}
+          </div>
           <HomeFooter />
         </div>
       </div>
@@ -106,20 +195,28 @@ const Home = () => {
 };
 
 function Chat({
+  userId,
   profilePicture,
   userName,
   latestMessage,
   latestMessageDate,
   unreadMessages,
 }) {
+  const history = useHistory();
+
   return (
-    <div className="chat pb-3">
+    <div
+      className="chat mb-3"
+      onClick={() => {
+        history.push("/home/chat", { userId, userName });
+      }}
+    >
       <img
         className="rounded-full object-cover"
-        src={profilePicture ? profilePicture : defaultUser}
+        src={profilePicture ? config.SERVER_URL + profilePicture : defaultUser}
         alt="People"
       />
-      <div>
+      <div className="mx-2 self-center">
         <h2 className="text-lg">{userName}</h2>
         <h5>{latestMessage}</h5>
       </div>
@@ -128,7 +225,7 @@ function Chat({
         <span
           className={`${
             unreadMessages ? "inline-block" : "hidden"
-          } text-center w-5 h-5 text-sm rounded-md`}
+          } text-center h-5 px-1 text-sm rounded-md`}
         >
           {unreadMessages}
         </span>

@@ -24,6 +24,21 @@
   border-radius: 2rem 2rem 0 0;
 }
 
+.chat-page__messages .group-date {
+  position: -webkit-sticky;
+  position: sticky;
+  top: -1.3rem;
+  z-index: 100;
+  margin: 0 auto 1.3rem auto;
+  width: 8rem;
+  text-align: center;
+  background: #F3F4F6;
+  font-family: "Roboto-Medium", sans-serif;
+  color: #939BB4;
+  padding: 0 0.8rem;
+  border-radius: 0.8rem;
+}
+
 .chat-page__messages .message {
   padding-bottom: 1.3rem;
   max-width: 80%;
@@ -73,9 +88,9 @@
 .chat-page__message-box .input-box {
   display: -ms-grid;
   display: grid;
-  -ms-grid-columns: min-content 1fr min-content;
-      grid-template-columns: -webkit-min-content 1fr -webkit-min-content;
-      grid-template-columns: min-content 1fr min-content;
+  -ms-grid-columns: 1fr min-content;
+      grid-template-columns: 1fr -webkit-min-content;
+      grid-template-columns: 1fr min-content;
   background: #F6F8FD;
   color: #939BB4;
 }
