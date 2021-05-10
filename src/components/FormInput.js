@@ -1,4 +1,4 @@
-import "./styles/css/min/FormInput.min.css";
+import "./styles/css/FormInput.css";
 
 export default function FormInput({ title, children }) {
   return (

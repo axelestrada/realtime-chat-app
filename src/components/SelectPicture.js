@@ -7,7 +7,7 @@ import DefaultUser from "../assets/images/defaultUser.jpg";
 
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import "./styles/css/min/SelectPicture.min.css";
+import "./styles/css/SelectPicture.css";
 
 const { Camera } = Plugins;
 

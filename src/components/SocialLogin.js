@@ -1,4 +1,4 @@
-import "./styles/css/min/SocialLogin.min.css"
+import "./styles/css/SocialLogin.css"
 
 export default function SocialLogin({children, formType}) {
   return (

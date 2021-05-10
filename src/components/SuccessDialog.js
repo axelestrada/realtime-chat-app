@@ -2,7 +2,7 @@ import { IonIcon } from "@ionic/react";
 import { close } from "ionicons/icons";
 import FormSubmitButton from "./FormSubmitButton";
 
-import "./styles/css/min/SuccessDialog.min.css";
+import "./styles/css/SuccessDialog.css";
 
 export default function SuccessDialog({
   title,

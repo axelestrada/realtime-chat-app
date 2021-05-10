@@ -1,9 +1,0 @@
-{
-    "version": 3,
-    "mappings": "AAAA,AAAA,WAAW,AAAC,CACV,MAAM,CAAE,MAAM,CAAG",
-    "sources": [
-        "../../sass/AddPhone.sass"
-    ],
-    "names": [],
-    "file": "AddPhone.min.css"
-}

@@ -1,14 +1,2 @@
-.form-browser-link {
-  font-family: "Roboto-Regular", sans-serif;
-}
-
-.form-browser-link .custom-checkbox ~ label {
-  margin-right: 0.2rem;
-}
-
-.form-browser-link .link {
-  text-decoration: none;
-  color: #27B9EB;
-  margin: 0 0.2rem;
-}
+.form-browser-link{font-family:"Roboto-Regular", sans-serif;color:#757F89}.form-browser-link .custom-checkbox ~ label{margin-right:0.2rem}.form-browser-link .link{text-decoration:none;color:#27B9EB;margin:0 0.2rem}
 /*# sourceMappingURL=FormBrowserLink.css.map */

@@ -1,19 +1,11 @@
-import { useState, useEffect } from "react";
 import { useHistory } from "react-router";
-
 import { Plugins } from "@capacitor/core";
-
-import { useForm } from "react-hook-form";
+import { useState, useEffect } from "react";
+import { IonIcon, IonPage } from "@ionic/react";
+import { Drivers, Storage } from "@ionic/storage";
 
 import axios from "axios";
-
-import { IonIcon, IonPage } from "@ionic/react";
-
-import {
-  signInFacebook,
-  signInTwitter,
-  signInGoogle,
-} from "../functions/SocialLoginFunctions";
+import { useForm } from "react-hook-form";
 
 import {
   eyeOutline,
@@ -22,21 +14,27 @@ import {
   logoGoogle,
 } from "ionicons/icons";
 
-import ChatBitLogo from "../assets/images/chatbitLogoIcon.jpg";
+import {
+  signInFacebook,
+  signInTwitter,
+  signInGoogle,
+} from "../functions/SocialLoginFunctions";
 
-import FormHeader from "../components/FormHeader";
 import Error from "../components/Error";
+import Loader from "../components/Loader";
 import FormInput from "../components/FormInput";
+import FormHeader from "../components/FormHeader";
+import SocialLink from "../components/SocialLink";
+import FormContent from "../components/FormContent";
+import MainContent from "../components/MainContent";
+import SocialLogin from "../components/SocialLogin";
 import FormRouterLink from "../components/FormRouterLink";
 import FormSubmitButton from "../components/FormSubmitButton";
 import FormModeSeparator from "../components/FormModeSeparator";
-import MainContent from "../components/MainContent";
-import SocialLogin from "../components/SocialLogin";
-import SocialLink from "../components/SocialLink";
 
-import { Drivers, Storage } from "@ionic/storage";
-import FormContent from "../components/FormContent";
-import Loader from "../components/Loader";
+import ChatBitLogo from "../assets/images/chatbitLogoIcon.jpg";
+
+import config from "../config.json";
 
 const { Network } = Plugins;
 
@@ -55,29 +53,29 @@ const initialValues = {
 export default function Login() {
   const history = useHistory();
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const [showLoader, setShowLoader] = useState(false);
-  const [internetConnection, setInternetConnection] = useState(true);
   const [vibrateError, setVibrateError] = useState(false);
-  const [loginError, setLoginError] = useState("");
-
-  Network.addListener("networkStatusChange", (status) => {
-    setInternetConnection(status.connected);
-  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [internetConnection, setInternetConnection] = useState(true);
 
   const { register, handleSubmit, errors } = useForm({
     defaultValues: initialValues,
   });
 
+  Network.addListener("networkStatusChange", (status) => {
+    setInternetConnection(status.connected);
+  });
+
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (loginError !== "Insert a valid Email or Phone") {
-        setLoginError("");
+      if (error !== "Enter a valid email address or phone") {
+        setError("");
       }
     }, 5000);
 
     return () => clearTimeout(timeout);
-  }, [loginError]);
+  }, [error]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -97,7 +95,7 @@ export default function Login() {
       setShowLoader(true);
 
       await axios
-        .post("http://192.168.0.106:3300/user/login", {
+        .post(`${config.SERVER_URL}/user/login`, {
           email,
           password,
         })
@@ -106,16 +104,14 @@ export default function Login() {
 
           await storage.set("token", res.data.token);
           await storage.set("userId", res.data.userId);
+
           e.target.reset();
         })
         .catch((error) => {
-          if (error.response) {
-            if (error.response.data.error) {
-              return setLoginError(error.response.data.error);
-            }
-          }
+          if (error.response && error.response.data.error)
+            return setError(error.response.data.error);
 
-          setLoginError("An unexpected error has ocurred");
+          setError("An unexpected error has ocurred");
           console.error(error);
         });
 
@@ -131,23 +127,16 @@ export default function Login() {
         <Loader visible={showLoader} src={ChatBitLogo} />
         <Error
           visible={
-            !internetConnection || errors.email || errors.password || loginError
+            !internetConnection || errors.email || errors.password || error
           }
           vibrate={vibrateError}
         >
-          {!internetConnection && (
-            <span>Please check your internet connection</span>
-          )}
-          {internetConnection && errors.email && (
-            <span>{errors.email.message}</span>
-          )}
-          {internetConnection && !errors.email && loginError && (
-            <span>{loginError}</span>
-          )}
-          {internetConnection &&
-            !errors.email &&
-            !loginError &&
-            errors.password && <span>{errors.password.message}</span>}
+          <span>
+            {(!internetConnection && "Please check your internet connection") ||
+              (errors.email && errors.email.message) ||
+              error ||
+              (errors.password && errors.password.message)}
+          </span>
         </Error>
         <FormContent>
           <FormHeader title="Login" subtitle="Sign in to your account" />
@@ -159,7 +148,7 @@ export default function Login() {
                 ref={register({
                   required: {
                     value: true,
-                    message: "Email or Phone is required",
+                    message: "Enter your email or phone",
                   },
                   validate: (value) => {
                     const trimValue = value
@@ -172,11 +161,11 @@ export default function Login() {
                         value
                       )
                     ) {
-                      setLoginError("Insert a valid Email or Phone");
+                      setError("Enter a valid email address or phone");
                     } else if (trimValue.length < 7) {
-                      setLoginError("Insert a valid Email or Phone");
+                      setError("Enter a valid email address or phone");
                     } else {
-                      setLoginError("");
+                      setError("");
                       return true;
                     }
                   },
@@ -191,7 +180,7 @@ export default function Login() {
                 ref={register({
                   required: {
                     value: true,
-                    message: "Password is required",
+                    message: "Enter your password",
                   },
                   minLength: {
                     value: 6,
@@ -230,7 +219,7 @@ export default function Login() {
                 setInternetConnection(connection.connected);
 
                 if (connection.connected) {
-                  signInFacebook(history, setLoginError, setShowLoader);
+                  signInFacebook(history, setError, setShowLoader);
                 } else {
                   setVibrateError(true);
                 }
@@ -244,7 +233,7 @@ export default function Login() {
                 setInternetConnection(connection.connected);
 
                 if (connection.connected) {
-                  signInTwitter(history, setLoginError, setShowLoader);
+                  signInTwitter(history, setError, setShowLoader);
                 } else {
                   setVibrateError(true);
                 }
@@ -258,7 +247,7 @@ export default function Login() {
                 setInternetConnection(connection.connected);
 
                 if (connection.connected) {
-                  signInGoogle(history, setLoginError, setShowLoader);
+                  signInGoogle(history, setError, setShowLoader);
                 } else {
                   setVibrateError(true);
                 }

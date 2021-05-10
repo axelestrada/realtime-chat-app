@@ -1,9 +1,0 @@
-{
-    "version": 3,
-    "mappings": "AAAA,AAAA,iBAAiB,AAAC,CAChB,WAAW,CAAE,4BAA4B,CACzC,KAAK,CAAE,OAAO,CAGS,AALzB,AAIE,iBAJe,CAIf,KAAK,AAAC,CACJ,OAAO,CAAA,QAAC,CAAW",
-    "sources": [
-        "../../sass/FormRouterLink.sass"
-    ],
-    "names": [],
-    "file": "FormRouterLink.min.css"
-}

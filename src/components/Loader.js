@@ -1,4 +1,4 @@
-import "./styles/css/min/Loader.min.css";
+import "./styles/css/Loader.css";
 
 export default function Loader({ visible, src, size = "20" }) {
   return (

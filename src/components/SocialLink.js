@@ -1,4 +1,3 @@
-import "./styles/css/min/SocialLogin.min.css";
 import { IonIcon } from "@ionic/react";
 
 export default function SocialLink({ onClick, icon, iconColor }) {

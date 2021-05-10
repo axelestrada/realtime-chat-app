@@ -1,4 +1,4 @@
-import "./styles/css/min/FormRouterLink.min.css";
+import "./styles/css/FormRouterLink.css";
 import { IonRouterLink } from "@ionic/react";
 
 export default function FormRouterLink({ title, link, linkTitle }) {

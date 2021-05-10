@@ -1,4 +1,4 @@
-import "./styles/css/min/FormHeader.min.css";
+import "./styles/css/FormHeader.css";
 
 export default function FormTitle({ title, subtitle }) {
   return (

@@ -1,20 +1,21 @@
-import { IonPage, IonIcon } from "@ionic/react";
-import { Drivers, Storage } from "@ionic/storage";
-import { search } from "ionicons/icons";
+import { IonPage } from "@ionic/react";
+import { useHistory } from "react-router";
 import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
+import { Drivers, Storage } from "@ionic/storage";
+
 import axios from "axios";
-
-import defaultUser from "../assets/images/defaultUser.jpg";
-import "../styles/css/min/Home.min.css";
-import HomeFooter from "../components/HomeFooter";
-import { useHistory, useLocation } from "react-router";
-
 import moment from "moment";
+import { io } from "socket.io-client";
+
+import Loader from "../components/Loader";
+import Header from "../components/Header";
+import HomeFooter from "../components/HomeFooter";
+import ErrorDialog from "../components/ErrorDialog";
+
+import Logo from "../assets/images/chatbitLogoIcon.jpg";
+import defaultUser from "../assets/images/defaultUser.jpg";
 
 import config from "../config.json";
-import Loader from "../components/Loader";
-import Logo from "../assets/images/chatbitLogoIcon.jpg";
 
 const socket = io(config.SERVER_URL);
 
@@ -26,31 +27,47 @@ const storage = new Storage({
 storage.create();
 
 const Home = () => {
-  const location = useLocation();
-  const [showLoader, setShowLoader] = useState(false);
+  const [error, setError] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
   const [activeChats, setActiveChats] = useState([]);
+  const [showLoader, setShowLoader] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
 
-  useEffect(() => {
-    if (searchValue) {
-      setSearchResults(
-        activeChats.filter(
-          (chat) =>
-            chat.contactInfo.name
-              .toLowerCase()
-              .indexOf(searchValue.toLowerCase()) > -1
-        )
-      );
-    } else {
-      setSearchResults([]);
+  const getLastTime = (date) => {
+    let lastTime = moment(date).fromNow(true);
+
+    lastTime = lastTime.split(" ");
+
+    switch (lastTime[0]) {
+      case "a":
+      case "an":
+        lastTime[0] = "1";
+        break;
+      default:
+        break;
     }
-  }, [searchValue]); //eslint-disable-line
+
+    switch (lastTime[1]) {
+      case "few":
+        lastTime[0] = "A";
+        lastTime[2] = "sec";
+        break;
+      case "seconds":
+        lastTime[1] = "sec";
+        break;
+      case "minute":
+      case "minutes":
+        lastTime[1] = "min";
+        break;
+      default:
+        break;
+    }
+
+    return lastTime.join(" ");
+  };
 
   const latestMessages = async (loader) => {
-    if (loader === "si") {
-      setShowLoader(true);
-    }
+    if (loader === "si") setShowLoader(true);
 
     const token = await storage.get("token");
 
@@ -61,11 +78,10 @@ const Home = () => {
         },
       })
       .then((res) => {
-        if (res.data.latestMessages) {
-          setActiveChats(res.data.latestMessages);
-        }
+        if (res.data.latestMessages) setActiveChats(res.data.latestMessages);
       })
       .catch((err) => {
+        setError(true);
         console.error(err);
       });
 
@@ -73,121 +89,103 @@ const Home = () => {
   };
 
   useEffect(() => {
-    if (location.pathname === "/home") {
-      latestMessages("si");
+    const timeout = setTimeout(() => {
+      latestMessages();
+    }, 60000);
 
-      socket.on("message", latestMessages);
-    }
+    return () => clearTimeout(timeout);
+  }, [activeChats]);
+
+  useEffect(() => {
+    setSearchResults(
+      activeChats.filter(
+        (chat) =>
+          chat.contactInfo.name
+            .toLowerCase()
+            .indexOf(searchValue.toLowerCase()) > -1
+      )
+    );
+  }, [searchValue]); //eslint-disable-line
+
+  useEffect(() => {
+    latestMessages("si");
+    socket.on("message", latestMessages);
 
     return () => {
       socket.off("message", latestMessages);
     };
-  }, [location]); //eslint-disable-line
+  }, []); //eslint-disable-line
 
   return (
     <IonPage>
       <div className="w-full h-full bg-gray-100">
+        <ErrorDialog
+          visible={error}
+          setVisible={setError}
+          title="Error!"
+          subtitle="Something went wrong!"
+          buttonTitle="Try Again"
+          onClick={() => {
+            setError(false);
+
+            latestMessages("si");
+          }}
+        />
         <Loader visible={showLoader} src={Logo} />
         <div className="home w-full h-full max-w-sm m-auto bg-gray-100">
-          <div className="home__header bg-white rounded-b-3xl p-5">
-            <div className="flex justify-between items-center">
-              <h1 className="text-3xl">Chatbit</h1>
-              <svg
-                viewBox="0 0 134.775 134.775"
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-              >
-                <path
-                  fill="currentColor"
-                  d="M67.58 44.795c13.569 0 22.201-11.101 22.201-22.598C89.781 11.101 81.149 0 67.58 0 53.213 0 44.994 11.101 44.994 22.197c0 11.497 8.219 22.598 22.586 22.598zM67.58 134.775c13.569 0 22.201-11.101 22.201-22.602 0-11.101-8.632-22.193-22.201-22.193-14.367 0-22.586 11.093-22.586 22.193 0 11.502 8.219 22.602 22.586 22.602z"
-                />
-              </svg>
-            </div>
-
-            <div className="home__search-box rounded-full mt-3 py-3 px-5">
-              <IonIcon src={search} className="w-5 h-5 grid" />
-              <input
-                autoComplete="off"
-                type="text"
-                name="search"
-                placeholder="Search by name"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-              />
-            </div>
-          </div>
+          <Header
+            title="Chatbit"
+            value={searchValue}
+            setValue={setSearchValue}
+            placeholder="Search by name"
+          />
 
           <div className="home__chats p-5 max-h-full overflow-y-auto">
             {searchValue !== ""
               ? searchResults.map((chat, idx) => {
-                  let latestDate = moment(
+                  const lastTime = getLastTime(
                     chat.latestMessage && chat.latestMessage.date
-                  ).fromNow(true);
-                  latestDate = latestDate.split(" ");
-                  latestDate[0] =
-                    latestDate[0] === "a" || latestDate[0] === "an"
-                      ? "1"
-                      : latestDate[0];
-                  latestDate[1] =
-                    latestDate[1] === "few"
-                      ? "mom"
-                      : latestDate[1] === "seconds"
-                      ? "sec"
-                      : latestDate[1] === "minute" ||
-                        latestDate[1] === "minutes"
-                      ? "min"
-                      : latestDate[1];
+                  );
 
                   return (
                     <Chat
                       key={idx}
-                      userId={chat.contactInfo._id}
-                      userName={chat.contactInfo.name}
+                      userId={chat.contactInfo && chat.contactInfo._id}
+                      userName={chat.contactInfo && chat.contactInfo.name}
                       latestMessage={
                         chat.latestMessage && chat.latestMessage.msg
                       }
-                      latestMessageDate={latestDate[0] + " " + latestDate[1]}
-                      profilePicture={chat.contactInfo.picture}
-                      unreadMessages={chat.unreadMessages}
+                      lastTime={lastTime}
+                      profilePicture={
+                        chat.contactInfo && chat.contactInfo.picture
+                      }
+                      unreadMessages={chat.contactInfo && chat.unreadMessages}
                     />
                   );
                 })
               : activeChats.map((chat, idx) => {
-                  let latestDate = moment(
+                  const lastTime = getLastTime(
                     chat.latestMessage && chat.latestMessage.date
-                  ).fromNow(true);
-                  latestDate = latestDate.split(" ");
-                  latestDate[0] =
-                    latestDate[0] === "a" || latestDate[0] === "an"
-                      ? "1"
-                      : latestDate[0];
-                  latestDate[1] =
-                    latestDate[1] === "few"
-                      ? "mom"
-                      : latestDate[1] === "seconds"
-                      ? "sec"
-                      : latestDate[1] === "minute" ||
-                        latestDate[1] === "minutes"
-                      ? "min"
-                      : latestDate[1];
+                  );
 
                   return (
                     <Chat
                       key={idx}
-                      userId={chat.contactInfo._id}
-                      userName={chat.contactInfo.name}
+                      userId={chat.contactInfo && chat.contactInfo._id}
+                      userName={chat.contactInfo && chat.contactInfo.name}
                       latestMessage={
                         chat.latestMessage && chat.latestMessage.msg
                       }
-                      latestMessageDate={latestDate[0] + " " + latestDate[1]}
-                      profilePicture={chat.contactInfo.picture}
-                      unreadMessages={chat.unreadMessages}
+                      lastTime={lastTime}
+                      profilePicture={
+                        chat.contactInfo && chat.contactInfo.picture
+                      }
+                      unreadMessages={chat.contactInfo && chat.unreadMessages}
                     />
                   );
                 })}
           </div>
-          <HomeFooter />
+          <HomeFooter lastConversation={activeChats[0]} />
         </div>
       </div>
     </IonPage>
@@ -199,33 +197,38 @@ function Chat({
   profilePicture,
   userName,
   latestMessage,
-  latestMessageDate,
+  lastTime,
   unreadMessages,
 }) {
   const history = useHistory();
 
   return (
     <div
-      className="chat mb-3"
+      className="chat mb-5"
       onClick={() => {
         history.push("/home/chat", { userId, userName });
       }}
     >
       <img
-        className="rounded-full object-cover"
-        src={profilePicture ? config.SERVER_URL + profilePicture : defaultUser}
+        className="picture rounded-full object-cover"
+        src={
+          profilePicture ? `${config.SERVER_URL}${profilePicture}` : defaultUser
+        }
+        onError={(e) => {
+          e.target.src = defaultUser;
+        }}
         alt="People"
       />
-      <div className="mx-2 self-center">
-        <h2 className="text-lg">{userName}</h2>
-        <h5>{latestMessage}</h5>
+      <div className="mx-2">
+        <h2 className="name text-lg">{userName}</h2>
+        <h5 className="msg-content">{latestMessage}</h5>
       </div>
       <div className="text-right">
-        <p className="mb-2">{latestMessageDate}</p>
+        <p className="last-time mb-2">{lastTime}</p>
         <span
           className={`${
             unreadMessages ? "inline-block" : "hidden"
-          } text-center h-5 px-1 text-sm rounded-md`}
+          } unread text-center h-5 px-1 text-sm rounded-md`}
         >
           {unreadMessages}
         </span>

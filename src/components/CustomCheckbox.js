@@ -1,4 +1,4 @@
-import "./styles/css/min/CustomCheckbox.min.css";
+import "./styles/css/CustomCheckbox.css";
 
 export default function CustomCheckbox({ id, value, setValue }) {
   return (

@@ -1,9 +1,0 @@
-{
-    "version": 3,
-    "mappings": "AAAA,AAAA,WAAW,AAAC,CACV,WAAW,CAAE,0BAA0B,CACvC,KAAK,CAAE,OAAO,CAIO,AANvB,AAIE,WAJS,CAIT,EAAE,AAAC,CACD,WAAW,CAAE,4BAA4B,CACzC,KAAK,CAAE,OAAO,CAAG",
-    "sources": [
-        "../../sass/FormTitle.sass"
-    ],
-    "names": [],
-    "file": "FormTitle.min.css"
-}

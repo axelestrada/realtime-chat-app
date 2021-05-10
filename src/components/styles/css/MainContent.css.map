@@ -1,9 +1,0 @@
-{
-    "version": 3,
-    "mappings": "AAAA,MAAM,CAAC,MAAM,MAAM,UAAU,EAAE,QAAQ;EACrC,AAEE,aAFW,CAEX,aAAa,CAAC;IACZ,OAAO,EAAE,YAAY;GAAG",
-    "sources": [
-        "../sass/MainContent.sass"
-    ],
-    "names": [],
-    "file": "MainContent.css"
-}

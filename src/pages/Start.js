@@ -4,13 +4,14 @@ import { Drivers, Storage } from "@ionic/storage";
 import { Plugins, Capacitor } from "@capacitor/core";
 import { useHistory, useLocation } from "react-router";
 
-import axios from "axios";
-
 import Error from "../components/Error";
 import Loader from "../components/Loader";
 import ErrorDialog from "../components/ErrorDialog";
 import MainContent from "../components/MainContent";
 import ChatbitLogo from "../assets/images/chatbitLogo.jpg";
+
+import axios from "axios";
+import config from "../config.json";
 
 const { Network } = Plugins;
 
@@ -41,7 +42,7 @@ export default function Start() {
     if (connection.connected) {
       if (token) {
         await axios
-          .get("http://192.168.0.106:3300/home", {
+          .get(`${config.SERVER_URL}/home`, {
             headers: {
               token,
             },
@@ -66,12 +67,16 @@ export default function Start() {
   useEffect(() => {
     if (Capacitor.isNative) {
       Plugins.App.addListener("backButton", () => {
-        if (window.location.pathname === "/login") {
+        const { pathname } = window.location;
+
+        if (pathname === "/" || pathname === "/login" || pathname === "/home") {
           Plugins.App.exitApp();
-        } else if (window.location.pathname === "/register") {
+        } else if (pathname === "/register" || pathname === "/forgot-password") {
           history.push("/login");
-        } else if (window.location.pathname === "/register/otp-verification") {
+        } else if (pathname === "/register/otp-verification") {
           history.push("/register");
+        }else if (pathname === "/home/chat" || pathname === "/home/contacts") {
+          history.push("home");
         }
       });
     }
@@ -101,9 +106,9 @@ export default function Start() {
         />
 
         <Error visible={!internetConnection}>
-          {!internetConnection && (
-            <span>Please check your internet connection</span>
-          )}
+          <span>
+            {!internetConnection && "Please check your internet connection"}
+          </span>
         </Error>
 
         <Loader src={ChatbitLogo} visible={true} size="32" />

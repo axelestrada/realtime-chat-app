@@ -1,0 +1,29 @@
+.contacts
+  display: grid
+  grid-template-columns: 1fr
+  grid-template-rows: min-content 1fr min-content
+  min-height: 30.5rem
+
+  &__users
+    .user
+      display: grid
+      grid-template-columns: max-content 1fr max-content
+      align-items: center
+
+      .picture
+        align-self: center
+        width: 3.7rem
+        height: 3.7rem
+
+      .name
+        color: #414B60
+        line-height: 1
+        padding-bottom: 0.125rem
+
+      .contact-info
+        color: #BBC0CD
+        font-family: "Roboto-Regular", sans-serif
+        line-height: 1
+
+      .icon
+        color: #BBC0CD

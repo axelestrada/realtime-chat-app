@@ -1,9 +1,10 @@
 import { Plugins } from "@capacitor/core";
-import { Twitter } from "@capacitor-community/twitter";
 import "@codetrix-studio/capacitor-google-auth";
-import axios from "axios";
-
 import { Drivers, Storage } from "@ionic/storage";
+import { Twitter } from "@capacitor-community/twitter";
+
+import axios from "axios";
+import config from "../config.json";
 
 const storage = new Storage({
   name: "__localDb",
@@ -37,7 +38,7 @@ export async function signInFacebook(history, setError, setShowLoader) {
           };
 
           await axios
-            .post("http://192.168.0.106:3300/user/social-register", user)
+            .post(`${config.SERVER_URL}/user/social-register`, user)
             .then(async (res) => {
               const { token, id, phone } = res.data;
               if (phone) {
@@ -79,7 +80,7 @@ export async function signInTwitter(history, setError, setShowLoader) {
 
       if (result.authToken && result.authTokenSecret) {
         await axios
-          .get(`http://192.168.0.106:3300/user/twitter-data`, {
+          .get(`${config.SERVER_URL}/user/twitter-data`, {
             params: {
               oauthToken: result.authToken,
               oauthTokenSecret: result.authTokenSecret,
@@ -99,7 +100,7 @@ export async function signInTwitter(history, setError, setShowLoader) {
             };
 
             await axios
-              .post("http://192.168.0.106:3300/user/social-register", user)
+              .post(`${config.SERVER_URL}/user/social-register`, user)
               .then(async (res) => {
                 const { token, id, phone } = res.data;
                 if (phone) {
@@ -146,7 +147,7 @@ export async function signInGoogle(history, setError, setShowLoader) {
       };
 
       await axios
-        .post("http://192.168.0.106:3300/user/social-register", user)
+        .post(`${config.SERVER_URL}/user/social-register`, user)
         .then(async (res) => {
           const { token, id, phone } = res.data;
           if (phone) {

@@ -1,23 +1,25 @@
-import { IonIcon, IonPage } from "@ionic/react";
 import { Plugins } from "@capacitor/core";
 import { useState, useEffect } from "react";
+import { IonIcon, IonPage } from "@ionic/react";
+import { useHistory, useLocation } from "react-router";
 
 import Error from "../components/Error";
 import Loader from "../components/Loader";
 import FormHeader from "../components/FormHeader";
 import MainContent from "../components/MainContent";
 import FormContent from "../components/FormContent";
-
-import PhoneInput, { parsePhoneNumber } from "react-phone-number-input";
-import "react-phone-number-input/style.css";
-import "../styles/css/min/AddPhone.min.css";
-
-import ChatBitLogo from "../assets/images/chatbitLogoIcon.jpg";
-import PhoneIcon from "../assets/images/phoneIcon.svg";
 import FormSubmitButton from "../components/FormSubmitButton";
+
+import axios from "axios";
+import "react-phone-number-input/style.css";
+import PhoneInput, { parsePhoneNumber } from "react-phone-number-input";
+
 import { chevronForward } from "ionicons/icons";
-import CheckPhone from "../functions/CheckPhone";
-import { useHistory, useLocation } from "react-router";
+import PhoneIcon from "../assets/images/phoneIcon.svg";
+import ChatBitLogo from "../assets/images/chatbitLogoIcon.jpg";
+
+import GenerateCode from "../functions/GenerateCode";
+import config from "../config.json";
 
 const { Network } = Plugins;
 
@@ -29,8 +31,8 @@ export default function AddPhone() {
   const [vibrateError, setVibrateError] = useState(false);
   const [internetConnection, setInternetConnection] = useState(true);
 
-  const [addPhoneError, setAddPhoneError] = useState("");
   const [phone, setPhone] = useState("");
+  const [error, setError] = useState("");
 
   Network.addListener("networkStatusChange", (status) => {
     setInternetConnection(status.connected);
@@ -38,11 +40,11 @@ export default function AddPhone() {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setAddPhoneError("");
+      setError("");
     }, 5000);
 
     return () => clearTimeout(timeout);
-  }, [addPhoneError]);
+  }, [error]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -55,14 +57,11 @@ export default function AddPhone() {
   return (
     <IonPage>
       <MainContent>
-        <Error
-          visible={!internetConnection || addPhoneError}
-          vibrate={vibrateError}
-        >
-          {!internetConnection && (
-            <span>Please check your internet connection</span>
-          )}
-          {internetConnection && <span>{addPhoneError}</span>}
+        <Error visible={!internetConnection || error} vibrate={vibrateError}>
+          <span>
+            {(!internetConnection && "Please check your internet connection") ||
+              error}
+          </span>
         </Error>
         <Loader visible={showLoader} src={ChatBitLogo} />
         <FormContent justifyContent="justify-end" alignItems="items-end">
@@ -86,7 +85,7 @@ export default function AddPhone() {
             subtitle="Add your phone number so your friends can find you more easily"
           />
           <form
-          className="w-full"
+            className="w-full"
             onSubmit={async (e) => {
               e.preventDefault();
 
@@ -94,42 +93,36 @@ export default function AddPhone() {
               setInternetConnection(connection.connected);
 
               if (connection.connected) {
-                const phoneNumber = parsePhoneNumber(phone);
+                if (phone && location.state && location.state.userId) {
+                  const code = GenerateCode();
+                  const phoneNumber = parsePhoneNumber(phone);
 
-                const characters = [
-                  "0",
-                  "1",
-                  "2",
-                  "3",
-                  "4",
-                  "5",
-                  "6",
-                  "7",
-                  "8",
-                  "9",
-                ];
-                let code = "";
+                  setShowLoader(true);
 
-                while (code.length <= 4) {
-                  code += characters[Math.floor(Math.random() * 10)];
-                }
+                  await axios
+                    .post(`${config.SERVER_URL}/user/send-sms`, {
+                      code,
+                      to: phone,
+                    })
+                    .then(() => {
+                      history.push("/register/otp-verification", {
+                        sendType: "sms",
+                        phone: phoneNumber.nationalNumber,
+                        phoneIntl: phone,
+                        userId: location.state && location.state.userId,
+                        code,
+                      });
+                    })
+                    .catch((error) => {
+                      if (error.response && error.response.data.error) {
+                        return setError(error.response.data.error);
+                      }
 
-                if (
-                  await CheckPhone(
-                    phone,
-                    phoneNumber.nationalNumber,
-                    code,
-                    setShowLoader,
-                    setAddPhoneError
-                  )
-                ) {
-                  history.push("/register/otp-verification", {
-                    sendType: "sms",
-                    phone: phoneNumber.nationalNumber,
-                    phoneIntl: phone,
-                    userId: location.state && location.state.userId,
-                    code,
-                  });
+                      setError("An unexpected error has ocurred");
+                      console.error(error);
+                    });
+
+                  setShowLoader(false);
                 }
               } else {
                 setVibrateError(true);

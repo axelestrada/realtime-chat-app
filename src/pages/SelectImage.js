@@ -1,30 +1,32 @@
-import { useEffect, useState } from "react";
-import { useHistory, useLocation } from "react-router";
 import { IonPage } from "@ionic/react";
 import { Plugins } from "@capacitor/core";
-import axios from "axios";
+import { useEffect, useState } from "react";
+import { useHistory, useLocation } from "react-router";
 
-import Loader from "../components/Loader";
 import Error from "../components/Error";
-import FormContent from "../components/FormContent";
+import Loader from "../components/Loader";
 import FormHeader from "../components/FormHeader";
-import FormSubmitButton from "../components/FormSubmitButton";
+import FormContent from "../components/FormContent";
 import MainContent from "../components/MainContent";
 import SelectPicture from "../components/SelectPicture";
+import FormSubmitButton from "../components/FormSubmitButton";
 
 import ChatBitLogo from "../assets/images/chatbitLogoIcon.jpg";
+
+import axios from "axios";
+import config from "../config.json";
 
 const { Network } = Plugins;
 
 export default function SelectImage() {
-  const location = useLocation();
   const history = useHistory();
+  const location = useLocation();
 
   const [photo, setPhoto] = useState();
+  const [error, setError] = useState("");
   const [showLoader, setShowLoader] = useState(false);
   const [vibrateError, setVibrateError] = useState(false);
   const [internetConnection, setInternetConnection] = useState(true);
-  const [selImageError, setSelImageError] = useState("");
 
   Network.addListener("networkStatusChange", (status) => {
     setInternetConnection(status.connected);
@@ -32,11 +34,11 @@ export default function SelectImage() {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      setSelImageError("");
+      setError("");
     }, 5000);
 
     return () => clearTimeout(timeout);
-  }, [selImageError]);
+  }, [error]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -73,26 +75,26 @@ export default function SelectImage() {
             form.append("id", location.state.userId);
 
             await axios
-              .post("http://192.168.0.106:3300/user/upload-image", form, {
+              .post(`${config.SERVER_URL}/user/upload-image`, form, {
                 headers: {
                   "Content-Type": "multipart/form-data",
                 },
               })
-              .then((res) => {
+              .then(() => {
                 history.push("/register/add-phone", {
                   userId: location.state.userId,
                 });
               })
               .catch((error) => {
-               if (error.response && error.response.data.error) {
-                 return setSelImageError(error.response.data.error);
-               }
+                if (error.response && error.response.data.error) {
+                  return setError(error.response.data.error);
+                }
 
-               setSelImageError("An unexpected error has ocurred");
-               console.error(error);
+                setError("An unexpected error has ocurred");
+                console.error(error);
               });
           } catch (error) {
-            setSelImageError("An unexpected error has ocurred");
+            setError("An unexpected error has ocurred");
             console.error(error);
           }
 
@@ -103,7 +105,7 @@ export default function SelectImage() {
           userId: location.state.userId,
         });
       } else {
-        setSelImageError("An unexpected error has ocurred");
+        setError("An unexpected error has ocurred");
       }
     } else {
       setVibrateError(true);
@@ -114,14 +116,11 @@ export default function SelectImage() {
     <IonPage>
       <MainContent>
         <Loader visible={showLoader} src={ChatBitLogo} />
-        <Error
-          visible={!internetConnection || selImageError}
-          vibrate={vibrateError}
-        >
-          {!internetConnection && (
-            <span>Please check your internet connection</span>
-          )}
-          {internetConnection && <span>{selImageError}</span>}
+        <Error visible={!internetConnection || error} vibrate={vibrateError}>
+          <span>
+            {(!internetConnection && "Please check your internet connection") ||
+              error}
+          </span>
         </Error>
         <FormContent justifyContent="justify-between">
           <FormHeader
@@ -134,10 +133,7 @@ export default function SelectImage() {
             setShowLoader={setShowLoader}
           />
 
-          <FormSubmitButton
-            title="Done"
-            onClick={() => uploadPhoto()}
-          />
+          <FormSubmitButton title="Done" onClick={() => uploadPhoto()} />
         </FormContent>
       </MainContent>
     </IonPage>

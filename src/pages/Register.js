@@ -1,31 +1,24 @@
-import { useState, useEffect } from "react";
 import { useHistory } from "react-router";
+import { useState, useEffect } from "react";
+import { IonIcon, IonPage } from "@ionic/react";
+import { Plugins } from "@capacitor/core";
 
+import axios from "axios";
 import { useForm } from "react-hook-form";
 
-import {
-  signInFacebook,
-  signInGoogle,
-  signInTwitter,
-} from "../functions/SocialLoginFunctions";
-
-import { IonIcon, IonPage } from "@ionic/react";
-
-import ChatBitLogo from "../assets/images/chatbitLogoIcon.jpg";
-
-import MainContent from "../components/MainContent";
-import Loader from "../components/Loader";
 import Error from "../components/Error";
-import FormContent from "../components/FormContent";
-import FormHeader from "../components/FormHeader";
+import Loader from "../components/Loader";
 import FormInput from "../components/FormInput";
+import FormHeader from "../components/FormHeader";
+import SocialLink from "../components/SocialLink";
+import SocialLogin from "../components/SocialLogin";
+import MainContent from "../components/MainContent";
+import FormContent from "../components/FormContent";
+import CustomCheckbox from "../components/CustomCheckbox";
+import FormRouterLink from "../components/FormRouterLink";
 import FormBrowserLink from "../components/FormBrowserLink";
 import FormSubmitButton from "../components/FormSubmitButton";
-import FormRouterLink from "../components/FormRouterLink";
 import FormModeSeparator from "../components/FormModeSeparator";
-import SocialLogin from "../components/SocialLogin";
-import SocialLink from "../components/SocialLink";
-import CustomCheckbox from "../components/CustomCheckbox";
 
 import {
   eyeOutline,
@@ -34,8 +27,17 @@ import {
   logoGoogle,
 } from "ionicons/icons";
 
-import { Plugins } from "@capacitor/core";
-import CheckEmail from "../functions/CheckEmail";
+import {
+  signInFacebook,
+  signInGoogle,
+  signInTwitter,
+} from "../functions/SocialLoginFunctions";
+
+import GenerateCode from "../functions/GenerateCode";
+
+import ChatBitLogo from "../assets/images/chatbitLogoIcon.jpg";
+
+import config from "../config.json";
 
 const { Browser, Network } = Plugins;
 
@@ -48,12 +50,12 @@ const initialValues = {
 export default function Register() {
   const history = useHistory();
 
-  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
   const [showLoader, setShowLoader] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [vibrateError, setVibrateError] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [internetConnection, setInternetConnection] = useState(true);
-  const [registerError, setRegisterError] = useState("");
-  const [vibrateError, setVibrateError] = useState(false);
 
   const { register, handleSubmit, errors } = useForm({
     defaultValues: initialValues,
@@ -65,13 +67,13 @@ export default function Register() {
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (registerError !== "Insert a valid Email") {
-        setRegisterError("");
+      if (error !== "Enter a valid email address") {
+        setError("");
       }
     }, 5000);
 
     return () => clearTimeout(timeout);
-  }, [registerError]);
+  }, [error]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -87,38 +89,38 @@ export default function Register() {
 
     if (connection.connected) {
       if (termsAccepted) {
-        const characters = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
-        let code = "";
+        setShowLoader(true);
 
-        while (code.length <= 4) {
-          code += characters[Math.floor(Math.random() * 10)];
-        }
-
+        const code = GenerateCode();
         const name = data.name.split(" ");
 
-        if (
-          await CheckEmail(
-            {
-              name: name.length >= 3 ? `${name[0]} ${name[2]}` : data.name,
-              email: data.email,
-              code,
-            },
-            setShowLoader,
-            setRegisterError
-          )
-        ) {
-          history.push("/register/otp-verification", {
-            userData: data,
+        await axios
+          .post(`${config.SERVER_URL}/user/check-email`, {
+            name: name.length >= 3 ? `${name[0]} ${name[2]}` : data.name,
+            email: data.email,
             code,
+          })
+          .then(() => {
+            history.push("/register/otp-verification", {
+              userData: data,
+              code,
+            });
+
+            e.target.reset();
+            setTermsAccepted(false);
+          })
+          .catch((error) => {
+            if (error.response && error.response.data.error) {
+              return setError(error.response.data.error);
+            }
+
+            setError("An unexpected error has ocurred");
+            console.error(error);
           });
 
-          e.target.reset();
-          setTermsAccepted(false);
-        }
+        setShowLoader(false);
       } else {
-        setRegisterError(
-          "Please accept our legal agreements before continuing"
-        );
+        setError("Please accept our legal agreements before continuing");
       }
     } else {
       setVibrateError(true);
@@ -135,26 +137,17 @@ export default function Register() {
             errors.name ||
             errors.email ||
             errors.password ||
-            registerError
+            error
           }
           vibrate={vibrateError}
         >
-          {!internetConnection && (
-            <span>Please check your internet connection</span>
-          )}
-          {internetConnection && errors.name && errors.name.message}
-          {internetConnection && !errors.name && errors.email && (
-            <span>{errors.email.message}</span>
-          )}
-          {internetConnection &&
-            !errors.name &&
-            !errors.email &&
-            registerError && <span>{registerError}</span>}
-          {internetConnection &&
-            !errors.name &&
-            !errors.email &&
-            !registerError &&
-            errors.password && <span>{errors.password.message}</span>}
+          <span>
+            {(!internetConnection && "Please check your internet connection") ||
+              (errors.name && errors.name.message) ||
+              (errors.email && errors.email.message) ||
+              error ||
+              (errors.password && errors.password.message)}
+          </span>
         </Error>
         <FormContent>
           <FormHeader title="Register" subtitle="Sign up to your account" />
@@ -166,7 +159,7 @@ export default function Register() {
                 ref={register({
                   required: {
                     value: true,
-                    message: "Name is required",
+                    message: "Enter your name",
                   },
                 })}
               />
@@ -178,11 +171,11 @@ export default function Register() {
                 ref={register({
                   required: {
                     value: true,
-                    message: "Email is required",
+                    message: "Enter your email address",
                   },
                   pattern: {
                     value: /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i,
-                    message: "Insert a valid email",
+                    message: "Enter a valid email address or phone",
                   },
                 })}
               />
@@ -195,7 +188,7 @@ export default function Register() {
                 ref={register({
                   required: {
                     value: true,
-                    message: "Password is required",
+                    message: "Enter your password",
                   },
                   minLength: {
                     value: 6,
@@ -222,13 +215,13 @@ export default function Register() {
                 />
                 I understand and agree to
                 <a
-                  href="https://axelestrada.github.io/privacy-policy.html"
+                  href={config.PRIVACY_POLICY_URL}
                   className="link"
                   onClick={async (e) => {
                     e.preventDefault();
 
                     await Browser.open({
-                      url: "https://axelestrada.github.io/privacy-policy.html",
+                      url: config.PRIVACY_POLICY_URL,
                     });
                   }}
                 >
@@ -236,14 +229,13 @@ export default function Register() {
                 </a>
                 and
                 <a
-                  href="https://axelestrada.github.io/terms-and-conditions.html"
+                  href={config.TERMS_AND_CONDITIONS_URL}
                   className="link"
                   onClick={async (e) => {
                     e.preventDefault();
 
                     await Browser.open({
-                      url:
-                        "https://axelestrada.github.io/terms-and-conditions.html",
+                      url: config.TERMS_AND_CONDITIONS_URL,
                     });
                   }}
                 >
@@ -268,7 +260,7 @@ export default function Register() {
                 setInternetConnection(connection.connected);
 
                 if (connection.connected) {
-                  signInFacebook(history, setRegisterError, setShowLoader);
+                  signInFacebook(history, setError, setShowLoader);
                 } else {
                   setVibrateError(true);
                 }
@@ -282,7 +274,7 @@ export default function Register() {
                 setInternetConnection(connection.connected);
 
                 if (connection.connected) {
-                  signInTwitter(history, setRegisterError, setShowLoader);
+                  signInTwitter(history, setError, setShowLoader);
                 } else {
                   setVibrateError(true);
                 }
@@ -296,7 +288,7 @@ export default function Register() {
                 setInternetConnection(connection.connected);
 
                 if (connection.connected) {
-                  signInGoogle(history, setRegisterError, setShowLoader);
+                  signInGoogle(history, setError, setShowLoader);
                 } else {
                   setVibrateError(true);
                 }

@@ -1,15 +1,19 @@
-import { IonIcon, IonPage } from "@ionic/react";
-import { chatboxOutline, search } from "ionicons/icons";
-import HomeFooter from "../components/HomeFooter";
-
-import defaultUser from "../assets/images/defaultUser.jpg";
-import { useHistory } from "react-router";
 import { useEffect, useState } from "react";
-import axios from "axios";
-
+import { IonIcon, IonPage } from "@ionic/react";
 import { Drivers, Storage } from "@ionic/storage";
+import { useHistory, useLocation } from "react-router";
 
+import axios from "axios";
 import { formatPhoneNumber } from "react-phone-number-input";
+
+import Header from "../components/Header";
+import HomeFooter from "../components/HomeFooter";
+import ErrorDialog from "../components/ErrorDialog";
+
+import { chatboxOutline } from "ionicons/icons";
+import defaultUser from "../assets/images/defaultUser.jpg";
+
+import config from "../config.json";
 
 const storage = new Storage({
   name: "__localDb",
@@ -19,6 +23,9 @@ const storage = new Storage({
 storage.create();
 
 function Contacts() {
+  const location = useLocation();
+
+  const [error, setError] = useState("");
   const [contacts, setContacts] = useState([]);
   const [searchValue, setSearchValue] = useState("");
 
@@ -26,7 +33,7 @@ function Contacts() {
     const token = await storage.get("token");
 
     axios
-      .get("http://192.168.0.106:3300/home/search-contacts", {
+      .get(`${config.SERVER_URL}/home/search-contacts`, {
         headers: {
           token,
         },
@@ -42,6 +49,7 @@ function Contacts() {
         }
       })
       .catch((err) => {
+        setError("search");
         console.error(err);
       });
   };
@@ -50,7 +58,7 @@ function Contacts() {
     const token = await storage.get("token");
 
     axios
-      .get("http://192.168.0.106:3300/home/contacts", {
+      .get(`${config.SERVER_URL}/home/contacts`, {
         headers: {
           token,
         },
@@ -61,6 +69,7 @@ function Contacts() {
         }
       })
       .catch((err) => {
+        setError("get");
         console.error(err);
       });
   };
@@ -76,23 +85,36 @@ function Contacts() {
   return (
     <IonPage>
       <div className="w-full h-full bg-white">
-        <div className="home w-full h-full max-w-sm m-auto bg-white relative">
-          <div className="home__header p-5">
-            <h1 className="text-3xl">Contacts</h1>
+        <ErrorDialog
+          visible={error}
+          setVisible={setError}
+          title="Error!"
+          subtitle="Something went wrong!"
+          buttonTitle="Try Again"
+          onClick={() => {
+            setError("");
 
-            <div className="home__search-box rounded-full mt-3 py-3 px-5">
-              <IonIcon src={search} className="w-5 h-5 grid" />
-              <input
-                type="text"
-                autoComplete="off"
-                name="search"
-                placeholder="Search"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="home__contacts p-5 max-h-full overflow-y-auto rounded-t-3xl bg-gray-100">
+            switch (error) {
+              case "get":
+                getContacts();
+                break;
+              case "search":
+                searchContacts();
+                break;
+              default:
+                break;
+            }
+          }}
+        />
+        <div className="contacts w-full h-full max-w-sm m-auto bg-white relative">
+          <Header
+            title="Contacts"
+            value={searchValue}
+            setValue={setSearchValue}
+            placeholder="Search"
+            showToggle={false}
+          />
+          <div className="contacts__users p-5 max-h-full overflow-y-auto rounded-t-3xl bg-gray-100">
             {contacts.map((contact, index) => {
               return (
                 <Contact
@@ -109,7 +131,9 @@ function Contacts() {
               );
             })}
           </div>
-          <HomeFooter />
+          <HomeFooter
+            lastConversation={location.state && location.state.lastConversation}
+          />
         </div>
       </div>
     </IonPage>
@@ -121,28 +145,30 @@ function Contact({ profilePicture, userName, phoneNumber, userId }) {
 
   return (
     <div
-      className="contact mb-3"
+      className="user mb-5 overflow-hidden"
       onClick={() => {
-        history.push("/home/chat", { userId, userName })}}
+        history.push("/home/chat", { userId, userName });
+      }}
     >
-      <div className="img-box">
-        <img
-          className="rounded-full object-cover"
-          src={
-            profilePicture
-              ? `http://192.168.0.106:3300/${profilePicture}`
-              : defaultUser
-          }
-          alt="People"
-        />
-      </div>
-      <div>
-        <h2 className="text-lg">{userName}</h2>
-        <h5 className="text-sm">{phoneNumber}</h5>
+      <img
+        className="picture rounded-full object-cover"
+        src={
+          profilePicture ? `${config.SERVER_URL}${profilePicture}` : defaultUser
+        }
+        onError={(e) => {
+          e.target.src = defaultUser;
+        }}
+        alt="People"
+      />
+      <div className="mx-2 max-w-full overflow-hidden">
+        <h2 className="name text-lg">{userName}</h2>
+        <h5 className="contact-info overflow-ellipsis whitespace-nowrap overflow-hidden">
+          {phoneNumber}
+        </h5>
       </div>
       <div className="text-right">
         <button>
-          <IonIcon className="icon" src={chatboxOutline} />
+          <IonIcon className="icon w-6 h-6" src={chatboxOutline} />
         </button>
       </div>
     </div>

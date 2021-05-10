@@ -2,14 +2,17 @@ import { Route } from "react-router-dom";
 import { IonApp, IonRouterOutlet, setupConfig } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
 
+import Home from "./pages/Home.js";
+import Chat from "./pages/Chat.js";
 import Start from "./pages/Start.js";
 import Login from "./pages/Login.js";
 import Register from "./pages/Register.js";
-import OtpVerification from "./pages/OtpVerification.js";
+import Contacts from "./pages/Contacts.js";
+import AddPhone from "./pages/AddPhone.js";
 import SelectImage from "./pages/SelectImage.js";
-import AddPhone from './pages/AddPhone.js';
-import Home from "./pages/Home.js";
-import Chat from "./pages/Chat.js";
+import ResetPassword from "./pages/ResetPassword.js";
+import ForgotPassword from "./pages/ForgotPassword.js";
+import OtpVerification from "./pages/OtpVerification.js";
 
 /* Core CSS required for Ionic components to work properly */
 import "@ionic/react/css/core.css";
@@ -30,10 +33,7 @@ import "@ionic/react/css/display.css";
 /* Theme variables */
 import "./theme/variables.css";
 import "./styles/tailwind.min.css";
-import "./styles/css/min/Main.min.css";
-import Contacts from "./pages/Contacts.js";
-import StartChat from "./pages/StartChat.js";
-
+import "./styles/css/Main.css";
 
 setupConfig({
   hardwareBackButton: false,
@@ -49,14 +49,17 @@ const App: React.FC = () => (
         <Route exact path="/home/chat">
           <Chat />
         </Route>
-        <Route exact path="/home/start-chat">
-          <StartChat />
-        </Route>
         <Route exact path="/home/contacts">
           <Contacts />
         </Route>
         <Route exact path="/login">
           <Login />
+        </Route>
+        <Route exact path="/forgot-password">
+          <ForgotPassword />
+        </Route>
+        <Route exact path="/reset-password">
+          <ResetPassword />
         </Route>
         <Route exact path="/register">
           <Register />

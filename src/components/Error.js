@@ -1,4 +1,4 @@
-import "./styles/css/min/Error.min.css";
+import "./styles/css/Error.css";
 
 export default function Error({children, visible, vibrate = false}) {
   return (

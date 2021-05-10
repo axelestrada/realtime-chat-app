@@ -1,7 +1,7 @@
 import { IonIcon } from "@ionic/react";
 import { close } from "ionicons/icons";
 
-import "./styles/css/min/ErrorDialog.min.css";
+import "./styles/css/ErrorDialog.css";
 
 export default function ErrorDialog({
   visible,

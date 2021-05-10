@@ -1,17 +1,21 @@
 import { IonIcon, IonPage } from "@ionic/react";
-import axios from "axios";
-import { chevronBack, informationCircleOutline } from "ionicons/icons";
-import { useHistory, useLocation } from "react-router";
-
-import "../styles/css/min/Chat.min.css";
-
 import { Drivers, Storage } from "@ionic/storage";
-import { useEffect, useRef, useState } from "react";
-import { io } from "socket.io-client";
-import Loader from "../components/Loader";
-import Logo from "../assets/images/chatbitLogoIcon.jpg";
+import { useHistory, useLocation } from "react-router";
+import { Fragment, useEffect, useRef, useState } from "react";
+
+import axios from "axios";
 import moment from "moment";
-const socket = io("http://192.168.0.106:3300");
+import { io } from "socket.io-client";
+
+import Loader from "../components/Loader";
+
+import Logo from "../assets/images/chatbitLogoIcon.jpg";
+import { chevronBack, informationCircleOutline } from "ionicons/icons";
+
+import config from "../config.json";
+import ErrorDialog from "../components/ErrorDialog";
+
+const socket = io(config.SERVER_URL);
 
 const storage = new Storage({
   name: "__localDb",
@@ -24,9 +28,12 @@ function Chat() {
   const history = useHistory();
   const location = useLocation();
 
+  const messagesEndRef = useRef(null);
+  const [error, setError] = useState(false);
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [showLoader, setShowLoader] = useState(false);
+
   let currentDate = "";
   const months = [
     "Jan",
@@ -42,16 +49,15 @@ function Chat() {
     "Nov",
     "Dec",
   ];
-  const messagesEndRef = useRef(null);
 
-  const audio = new Audio("http://192.168.0.106:3300/sounds/new-message.ogg");
+  const audio = new Audio(`${config.SERVER_URL}/sounds/new-message.ogg`);
 
   const addContact = async (id) => {
     const token = await storage.get("token");
 
     axios
       .put(
-        "http://192.168.0.106:3300/home/add-contact",
+        `${config.SERVER_URL}/home/add-contact`,
         {
           userId: id,
         },
@@ -72,7 +78,7 @@ function Chat() {
 
     await axios
       .put(
-        "http://192.168.0.106:3300/home/read-messages",
+        `${config.SERVER_URL}/home/read-messages`,
         {
           userId: location.state && location.state.userId,
           msgId,
@@ -86,8 +92,9 @@ function Chat() {
       .then(() => {
         getMessages();
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((err) => {
+        setError(true);
+        console.error(err);
       });
   };
 
@@ -95,7 +102,7 @@ function Chat() {
     const token = await storage.get("token");
 
     await axios
-      .get("http://192.168.0.106:3300/home/get-messages", {
+      .get(`${config.SERVER_URL}/home/get-messages`, {
         headers: {
           token,
         },
@@ -114,8 +121,9 @@ function Chat() {
           setMessages([]);
         }
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((err) => {
+        setError(true);
+        console.error(err);
       });
 
     setShowLoader(false);
@@ -137,6 +145,7 @@ function Chat() {
 
     if (message) {
       const userId = await storage.get("userId");
+
       const msg = {
         incomingMsgId: location.state && location.state.userId,
         outgoingMsgId: userId,
@@ -195,6 +204,18 @@ function Chat() {
   return (
     <IonPage>
       <div className="w-full h-full bg-gray-100">
+        <ErrorDialog
+          visible={error}
+          setVisible={setError}
+          title="Error!"
+          subtitle="Something went wrong!"
+          buttonTitle="Try Again"
+          onClick={() => {
+            setError(false);
+
+            readMessages();
+          }}
+        />
         <Loader visible={showLoader} src={Logo} />
         <div className="chat-page w-full h-full max-w-sm m-auto bg-gray-100">
           <div className="chat-page__header p-5 flex justify-between items-center">
@@ -233,10 +254,9 @@ function Chat() {
                 currentDate = groupDate;
 
                 return (
-                  <>
-                    <div className="group-date" key={groupDate}>{groupDate}</div>
+                  <Fragment key={idx}>
+                    <div className="group-date">{groupDate}</div>
                     <Message
-                      key={idx}
                       type={
                         location.state &&
                         location.state.userId === message.incomingMsgId
@@ -246,7 +266,7 @@ function Chat() {
                       content={message.msg}
                       date={formatAMPM(date)}
                     />
-                  </>
+                  </Fragment>
                 );
               }
 
