@@ -71,11 +71,12 @@ export default function Start() {
 
         if (pathname === "/" || pathname === "/login" || pathname === "/home") {
           Plugins.App.exitApp();
-        } else if (pathname === "/register" || pathname === "/forgot-password") {
+        } else if (
+          pathname === "/register" ||
+          pathname === "/forgot-password"
+        ) {
           history.push("/login");
-        } else if (pathname === "/register/otp-verification") {
-          history.push("/register");
-        }else if (pathname === "/home/chat" || pathname === "/home/contacts") {
+        } else if (pathname === "/home/chat" || pathname === "/home/contacts") {
           history.push("/home");
         }
       });

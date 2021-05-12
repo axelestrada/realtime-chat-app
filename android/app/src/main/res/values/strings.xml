@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">RealtimeChat</string>
-    <string name="title_activity_main">RealtimeChat</string>
+    <string name="app_name">Chat Bit</string>
+    <string name="title_activity_main">Chat Bit</string>
     <string name="package_name">com.realtimechat.app</string>
     <string name="custom_url_scheme">com.realtimechat.app</string>
     <string name="facebook_app_id">1303880233318012</string>

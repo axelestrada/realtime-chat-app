@@ -171,7 +171,7 @@ export default function OtpVerification() {
     await axios
       .post(`${config.SERVER_URL}/user/send-sms`, {
         code: location.state && location.state.code,
-        to: location.state && location.state.to,
+        to: location.state && location.state.phone,
       })
       .then(() => {})
       .catch((error) => {
