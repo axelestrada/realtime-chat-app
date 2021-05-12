@@ -1,37 +1,27 @@
 .success-dialog
-  background: #00000033
-
-  &__box
-    box-shadow: 0 0 1rem rgba(0, 0, 0, .1)
+  z-index: 1200
 
   &__close-button
-    color: #888
-
-  &__icon
-    border: 1px solid #bdd7db
-
-    &::before
-      content: ""
-      position: absolute
-      top: -5px
-      left: -5px
-      right: -5px
-      bottom: -5px
-      background: linear-gradient(to right, #bde1c5, #a7dcdc)
-      z-index: -1
-      border-radius: 50%
-      border: 1px solid #bdd7db
+    color: #a9a9a9
 
   &__title
     font-family: 'Roboto-Black', sans-serif
-    color: #797979
+    color: #707070
 
   &__subtitle
     font-family: "Roboto-Regular", sans-serif
-    color: #b6b6b6
+    color: #9d9d9d
 
-  .form-submit-button
-    width: auto
-    padding: 0rem 1.2rem
-    box-shadow: none
-    background: #7dd6c0
+  &__submit-button
+    font-family: 'Roboto-Black', sans-serif
+    padding: 0.2rem 2rem
+    color: #10b981
+    border: 3px solid #10b981 !important
+    transition: 0.3s
+
+    &:hover,
+    &:focus,
+    &:active
+      border: 3px solid #10b981 !important
+      background: #10b981
+      color: #fff

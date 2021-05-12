@@ -90,6 +90,7 @@ function Chat() {
         }
       )
       .then(() => {
+        socket.emit("read-messages");
         getMessages();
       })
       .catch((err) => {
@@ -151,6 +152,7 @@ function Chat() {
         outgoingMsgId: userId,
         msg: message,
         date: new Date(),
+        read: false,
       };
 
       setMessages((msgs) => [...msgs, msg]);
@@ -194,10 +196,12 @@ function Chat() {
       }
 
       socket.on("message", handleMessage);
+      socket.on("read-messages", getMessages);
     }
 
     return () => {
       socket.off("message", handleMessage);
+      socket.off("read-messages", getMessages);
     };
   }, [location]); //eslint-disable-line
 
@@ -265,6 +269,12 @@ function Chat() {
                       }
                       content={message.msg}
                       date={formatAMPM(date)}
+                      read={
+                        location.state &&
+                        location.state.userId === message.incomingMsgId
+                          ? message.read
+                          : ""
+                      }
                     />
                   </Fragment>
                 );
@@ -281,6 +291,12 @@ function Chat() {
                   }
                   content={message.msg}
                   date={formatAMPM(date)}
+                  read={
+                    location.state &&
+                    location.state.userId === message.incomingMsgId
+                      ? message.read
+                      : ""
+                  }
                 />
               );
             })}
@@ -323,11 +339,14 @@ function Chat() {
   );
 }
 
-function Message({ type, content, date }) {
+function Message({ type, content, date, read }) {
   return (
     <div className={`message ${type}`}>
-      <div className="content">{content}</div>
-      <span>{date}</span>
+      <div className="content">
+        {content}
+        <span className="read-status">{read === false ? "✓" : read === true && "✓✓"}</span>
+      </div>
+      <span className="date">{date}</span>
     </div>
   );
 }

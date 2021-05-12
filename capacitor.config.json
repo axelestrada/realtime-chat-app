@@ -1,6 +1,6 @@
 {
   "appId": "com.realtimechat.app",
-  "appName": "RealtimeChat",
+  "appName": "Chat Bit",
   "bundledWebRuntime": false,
   "npmClient": "npm",
   "webDir": "build",

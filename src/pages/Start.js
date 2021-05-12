@@ -76,7 +76,7 @@ export default function Start() {
         } else if (pathname === "/register/otp-verification") {
           history.push("/register");
         }else if (pathname === "/home/chat" || pathname === "/home/contacts") {
-          history.push("home");
+          history.push("/home");
         }
       });
     }

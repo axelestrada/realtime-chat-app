@@ -26,6 +26,8 @@
     "axios": "^0.21.1",
     "babel-runtime": "^6.26.0",
     "browser-image-compression": "^1.0.14",
+    "concurrently": "^6.1.0",
+    "cors-anywhere": "^0.4.4",
     "country-flag-icons": "^1.2.9",
     "emoji-mart": "^3.0.1",
     "emoji-picker-react": "^3.4.4",
@@ -66,7 +68,7 @@
     "workbox-streams": "^5.1.4"
   },
   "scripts": {
-    "start": "craco start",
+    "start": "concurrently \"react-scripts start\" \"cd node_modules/cors-anywhere/lib/ && npm run start\"",
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject"
