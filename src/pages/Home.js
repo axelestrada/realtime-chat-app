@@ -123,9 +123,11 @@ const Home = () => {
   useEffect(() => {
     latestMessages("si");
     socket.on("message", latestMessages);
+    socket.on("read-messages", latestMessages);
 
     return () => {
       socket.off("message", latestMessages);
+      socket.off("read-messages", latestMessages);
     };
   }, []); //eslint-disable-line
 
