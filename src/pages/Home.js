@@ -1,7 +1,9 @@
 import { IonPage } from "@ionic/react";
 import { useHistory } from "react-router";
+import { Plugins } from "@capacitor/core";
 import { useEffect, useState } from "react";
 import { Drivers, Storage } from "@ionic/storage";
+import { Twitter } from "@capacitor-community/twitter";
 
 import axios from "axios";
 import moment from "moment";
@@ -17,6 +19,8 @@ import defaultUser from "../assets/images/defaultUser.jpg";
 
 import config from "../config.json";
 
+const twitter = new Twitter();
+
 const socket = io(config.SERVER_URL);
 
 const storage = new Storage({
@@ -26,8 +30,17 @@ const storage = new Storage({
 
 storage.create();
 
+function isUrl(value) {
+  var regexp =
+    /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/;
+  return regexp.test(value);
+}
+
 const Home = () => {
+  const history = useHistory();
+
   const [error, setError] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const [activeChats, setActiveChats] = useState([]);
   const [showLoader, setShowLoader] = useState(false);
@@ -138,7 +151,45 @@ const Home = () => {
             value={searchValue}
             setValue={setSearchValue}
             placeholder="Search by name"
-          />
+            toggleOnClick={() => setShowMenu(!showMenu)}
+          >
+            <div
+              className={`header__menu absolute top-0 right-0 p-5 bg-white mt-10 transition-opacity duration-500 ${
+                showMenu ? "opacity-100" : "opacity-0"
+              }`}
+            >
+              <ul>
+                <li>
+                  <button>Profile</button>
+                </li>
+                <li>
+                  <button
+                    onClick={async () => {
+                      await storage.remove("token");
+                      await storage.remove("userId");
+
+                      await twitter.logout();
+                      await Plugins.FacebookLogin.logout();
+                      await Plugins.GoogleAuth.signOut();
+
+                      history.push("/login");
+                    }}
+                  >
+                    Logout
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => {
+                      Plugins.App.exitApp();
+                    }}
+                  >
+                    Exit
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </Header>
 
           <div className="home__chats p-5 max-h-full overflow-y-auto">
             {searchValue !== ""
@@ -212,7 +263,11 @@ function Chat({
       <img
         className="picture rounded-full object-cover"
         src={
-          profilePicture ? `${config.SERVER_URL}${profilePicture}` : defaultUser
+          isUrl(profilePicture)
+            ? profilePicture
+            : profilePicture
+            ? `${config.SERVER_URL}${profilePicture}`
+            : defaultUser
         }
         onError={(e) => {
           e.target.src = defaultUser;

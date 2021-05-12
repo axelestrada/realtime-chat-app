@@ -68,7 +68,7 @@
     "workbox-streams": "^5.1.4"
   },
   "scripts": {
-    "start": "concurrently \"react-scripts start\" \"cd node_modules/cors-anywhere/lib/ && npm run start\"",
+    "start": "craco start",
     "build": "craco build",
     "test": "craco test",
     "eject": "react-scripts eject"

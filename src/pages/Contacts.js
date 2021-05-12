@@ -22,6 +22,12 @@ const storage = new Storage({
 
 storage.create();
 
+function isUrl(value) {
+  var regexp =
+    /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/;
+  return regexp.test(value);
+}
+
 function Contacts() {
   const location = useLocation();
 
@@ -66,6 +72,8 @@ function Contacts() {
       .then((res) => {
         if (res.data.users) {
           setContacts(res.data.users);
+        }else{
+          setContacts([]);
         }
       })
       .catch((err) => {
@@ -153,7 +161,7 @@ function Contact({ profilePicture, userName, phoneNumber, userId }) {
       <img
         className="picture rounded-full object-cover"
         src={
-          profilePicture ? `${config.SERVER_URL}${profilePicture}` : defaultUser
+          isUrl(profilePicture) ? profilePicture : profilePicture ? `${config.SERVER_URL}${profilePicture}` : defaultUser
         }
         onError={(e) => {
           e.target.src = defaultUser;

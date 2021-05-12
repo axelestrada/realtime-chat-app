@@ -48,6 +48,7 @@ export async function signInFacebook(history, setError, setShowLoader) {
               }
 
               await storage.set("token", token);
+              await storage.set("userId", id);
             })
             .catch((error) => {
              if (error.response && error.response.data.error) {
@@ -110,6 +111,7 @@ export async function signInTwitter(history, setError, setShowLoader) {
                 }
 
                 await storage.set("token", token);
+                await storage.set("userId", id);
               })
               .catch((error) => {
                 if (error.response && error.response.data.error) {
@@ -157,6 +159,7 @@ export async function signInGoogle(history, setError, setShowLoader) {
           }
 
           await storage.set("token", token);
+          await storage.set("userId", id);
         })
         .catch((error) => {
          if (error.response && error.response.data.error) {
