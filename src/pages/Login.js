@@ -100,12 +100,12 @@ export default function Login() {
           password,
         })
         .then(async (res) => {
-          history.push("/home");
-
           await storage.set("token", res.data.token);
           await storage.set("userId", res.data.userId);
 
           e.target.reset();
+
+          history.push("/home");
         })
         .catch((error) => {
           if (error.response && error.response.data.error)

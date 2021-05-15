@@ -41,22 +41,23 @@ export async function signInFacebook(history, setError, setShowLoader) {
             .post(`${config.SERVER_URL}/user/social-register`, user)
             .then(async (res) => {
               const { token, id, phone } = res.data;
+
+              await storage.set("token", token);
+              await storage.set("userId", id);
+
               if (phone) {
                 history.push("/home");
               } else {
                 history.push("/register/add-phone", { userId: id });
               }
-
-              await storage.set("token", token);
-              await storage.set("userId", id);
             })
             .catch((error) => {
-             if (error.response && error.response.data.error) {
-               return setError(error.response.data.error);
-             }
+              if (error.response && error.response.data.error) {
+                return setError(error.response.data.error);
+              }
 
-             setError("An unexpected error has ocurred");
-             console.error(error);
+              setError("An unexpected error has ocurred");
+              console.error(error);
             });
         })
         .catch((e) => {
@@ -104,14 +105,15 @@ export async function signInTwitter(history, setError, setShowLoader) {
               .post(`${config.SERVER_URL}/user/social-register`, user)
               .then(async (res) => {
                 const { token, id, phone } = res.data;
+
+                await storage.set("token", token);
+                await storage.set("userId", id);
+
                 if (phone) {
                   history.push("/home");
                 } else {
                   history.push("/register/add-phone", { userId: id });
                 }
-
-                await storage.set("token", token);
-                await storage.set("userId", id);
               })
               .catch((error) => {
                 if (error.response && error.response.data.error) {
@@ -152,22 +154,23 @@ export async function signInGoogle(history, setError, setShowLoader) {
         .post(`${config.SERVER_URL}/user/social-register`, user)
         .then(async (res) => {
           const { token, id, phone } = res.data;
+
+          await storage.set("token", token);
+          await storage.set("userId", id);
+
           if (phone) {
             history.push("/home");
           } else {
             history.push("/register/add-phone", { userId: id });
           }
-
-          await storage.set("token", token);
-          await storage.set("userId", id);
         })
         .catch((error) => {
-         if (error.response && error.response.data.error) {
-           return setError(error.response.data.error);
-         }
+          if (error.response && error.response.data.error) {
+            return setError(error.response.data.error);
+          }
 
-         setError("An unexpected error has ocurred");
-         console.error(error);
+          setError("An unexpected error has ocurred");
+          console.error(error);
         });
     }
   } catch (e) {

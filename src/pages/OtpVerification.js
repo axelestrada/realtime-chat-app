@@ -107,14 +107,14 @@ export default function OtpVerification() {
             await axios
               .post(`${config.SERVER_URL}/user/register`, userData)
               .then(async (res) => {
+                await storage.set("token", res.data.token);
+                await storage.set("userId", res.data.id);
+                setOtpCode("");
+
                 history.replace("/register/otp-verification", {});
                 history.push("/register/select-image", {
                   userId: res.data.id,
                 });
-
-                await storage.set("token", res.data.token);
-                await storage.set("userId", res.data.id);
-                setOtpCode("");
               })
               .catch((error) => {
                 if (error.response && error.response.data.error) {
@@ -171,7 +171,7 @@ export default function OtpVerification() {
     await axios
       .post(`${config.SERVER_URL}/user/send-sms`, {
         code: location.state && location.state.code,
-        to: location.state && location.state.phone,
+        to: location.state && location.state.phoneIntl,
       })
       .then(() => {})
       .catch((error) => {

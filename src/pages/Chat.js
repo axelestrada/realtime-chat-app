@@ -311,6 +311,8 @@ function Chat() {
               <input
                 type="text"
                 autoComplete="off"
+                autoCorrect="on"
+                spellCheck="true"
                 placeholder="Message..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}

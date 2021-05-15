@@ -157,12 +157,12 @@ const Home = () => {
           >
             <div
               className={`header__menu absolute top-0 right-0 p-5 bg-white mt-10 transition-opacity duration-500 ${
-                showMenu ? "opacity-100" : "opacity-0"
+                showMenu ? "opacity-100" : "opacity-0 pointer-events-none"
               }`}
             >
               <ul>
                 <li>
-                  <button>Profile</button>
+                  <button onClick={() => {setShowMenu(false);}}>Profile</button>
                 </li>
                 <li>
                   <button
@@ -175,6 +175,8 @@ const Home = () => {
                       await Plugins.GoogleAuth.signOut();
 
                       history.push("/login");
+
+                      setShowMenu(false)
                     }}
                   >
                     Logout
@@ -183,6 +185,8 @@ const Home = () => {
                 <li>
                   <button
                     onClick={() => {
+                      setShowMenu(false)
+
                       Plugins.App.exitApp();
                     }}
                   >
